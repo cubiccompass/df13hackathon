@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Package xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Salesforce Chatter Connected Applications</fullName>
+    <apiAccessLevel>Unrestricted</apiAccessLevel>
+    <description>This package contains Connected Applications for all the officially supported Salesforce Chatter applications on your desktop and mobile devices!</description>
+    <namespacePrefix>sf_chttr_apps</namespacePrefix>
+    <version>29.0</version>
+</Package>

@@ -1,0 +1,75 @@
+<apex:page sidebar="false" showHeader="false" controller="LogalyticsFeedController">
+<head>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
+	<meta name="apple-mobile-web-app-capable" content="yes" />
+	<meta name="format-detection" content="telephone=no" />
+	<link rel="shortcut icon" href="https://logalytics.herokuapp.com/static/images/favicon.ico" type="image/x-icon" />
+	<link rel="icon" href="https://logalytics.herokuapp.com/static/images/favicon.ico" type="image/x-icon" />
+	<link href="{!$Resource.logalytics_styles}" type="text/css" rel="Stylesheet" />
+</head>
+	<div id="header">
+	<img id="details-image-loader" class="centered" style="display:none;" src="https://logalytics.herokuapp.com/static/img/ajax-loader.gif"></img>
+	</div>
+	<div id="details" style="margin:0px;padding:0px;overflow:hidden;display:none;">
+		<div id="details-header">
+			<a id="back-btn" href="#" style="text-decoration: none; text-weight: normal;">Back</a>
+			<span id="details-header-text" style="text-align:center;"></span>
+		</div>		
+		<iframe id="frame" frameBorder="0" style="overflow:hidden;height:100%;width:100%" height="100%" width="100%"></iframe>
+	</div>
+	<div id="container"></div>
+	
+	<script src="https://logalytics.herokuapp.com/static/js/zepto.min.js"></script>
+	<script src="https://logalytics.herokuapp.com/static/js/xdate.js"></script>
+	<script src="https://logalytics.herokuapp.com/static/js/fastclick.min.js"></script>
+	<script type="text/javascript">
+		if(!LOG) var LOG = {};
+		//LOG.api_url = "https://logalytics.herokuapp.com";
+		LOG.api_url = "http://localhost:5000";
+		LOG.token = '{!SessionID}';
+		if(LOG.token == 'null'){
+			LOG.token = null;
+			alert("missing authentication token");
+		}
+				
+		LOG.eventId		= 'event_id';
+		LOG.session_id 	= '{!SessionID}';
+		LOG.org_id		= '{!OrganizationID}';
+		LOG.user_id		= '{!UserID}';
+		LOG.url			= '{!ServerURL}';
+		LOG.data		= '{!FeedData}';
+		LOG.events 		= JSON.parse(LOG.data);
+		console.log(LOG.events);
+		
+		Zepto(function($){
+			alert('zepto loaded!');
+			return;
+			//LOG.getFeedMainEvents();
+			
+			$("#feed-load-more-link").on('click', function () {				
+				alert('refresh');
+				return false;
+			});
+			
+			$('.feed-item').live('click',function(event){
+				LOG.eventId = $(this).attr('id');
+				LOG.event = LOG.getEvent(LOG.eventId);
+				$("#container").hide();
+				$("#details-image-loader").show();
+				$("#details-header-text").text(LOG.event.EventSubject);
+				
+				var endpoint = LOG.api_url + '/api/events/' + LOG.eventId + '/template?security-token=' + LOG.token;
+				$('#frame').attr('src', endpoint);
+				$("#details").show();
+				$("#details-image-loader").hide();
+			});
+			
+			$('#details-header').on('click',function(event){
+				$("#container").show();
+				$("#details").hide();
+				return false;
+			});
+		});
+	</script>
+	<apex:includeScript value="{!$Resource.logalytics_library}" />
+</apex:page>
