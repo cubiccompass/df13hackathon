@@ -81,7 +81,7 @@ h3 {
 .feed-item-right{
 	height: 100%;
 	margin-right: 3px;
-	background-image: url( /static/img/ios/766-arrow-right.png );
+	background-image: url( https://logalytics.herokuapp.com/static/img/ios/766-arrow-right.png );
 	background-position: right;	
 	background-repeat: no-repeat;	
 }

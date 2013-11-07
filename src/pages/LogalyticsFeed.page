@@ -24,8 +24,8 @@
 	<script src="https://logalytics.herokuapp.com/static/js/fastclick.min.js"></script>
 	<script type="text/javascript">
 		if(!LOG) var LOG = {};
-		//LOG.api_url = "https://logalytics.herokuapp.com";
-		LOG.api_url = "http://localhost:5000";
+		LOG.api_url = "https://logalytics.herokuapp.com";
+		//LOG.api_url = "http://localhost:5000";
 		LOG.token = '{!SessionID}';
 		if(LOG.token == 'null'){
 			LOG.token = null;
@@ -39,11 +39,12 @@
 		LOG.url			= '{!ServerURL}';
 		LOG.data		= '{!FeedData}';
 		LOG.events 		= JSON.parse(LOG.data);
-		console.log(LOG.events);
+		console.log(LOG.events);		
+		LOG.bindFeed('container', 'all');
 		
 		Zepto(function($){
-			alert('zepto loaded!');
-			return;
+			//alert('zepto loaded!');
+			//return;
 			//LOG.getFeedMainEvents();
 			
 			$("#feed-load-more-link").on('click', function () {				
