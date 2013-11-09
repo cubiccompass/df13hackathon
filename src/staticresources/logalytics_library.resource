@@ -1,5 +1,5 @@
 if(!LOG) var LOG = {};
-		
+
 LOG.getEvent = function(eventid){
 	var event = null;
 	for (var i=0;i<LOG.events.length;i++){
@@ -10,27 +10,6 @@ LOG.getEvent = function(eventid){
 	}
 	return event;
 };
-
-LOG.getFeedMainEvents = function(){
-	$.ajax({
-		url: LOG.api_url + "/api/feed",
-		type: "GET",
-		beforeSend: function(xhr){
-			xhr.setRequestHeader('x-security-token', LOG.token);
-		},
-		success: function(data) {
-			console.log(data);
-			LOG.events = JSON.parse(data);
-			console.log(LOG.events);
-			LOG.bindFeed('container', 'all');
-		},
-		error: function(xhr, status, error) {
-			console.log(error);
-			console.log(status);
-			alert("error: " + status);
-		}
-	});
-}
 
 LOG.bindFeed = function(container, eventFilter){
 	var output = '';
@@ -64,7 +43,6 @@ LOG.bindFeed = function(container, eventFilter){
 		output += '</div>';
 		displayedItemsCount++;
 	});
-	//if(displayedItemsCount >= 7){ output += '<div class="last-item"><a href="#" id="feed-load-more-link">Load more</a></div>';}
 	$('#' + container).append(output);
 };
 
