@@ -1,0 +1,57 @@
+<apex:page sidebar="false" showHeader="false" controller="LogalyticsEventDetailController">
+<head>
+	<title>Logalytics</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
+	<meta name="apple-mobile-web-app-capable" content="yes" />
+	<meta name="format-detection" content="telephone=no" />
+	<link href="{!$Resource.logalytics_styles}" type="text/css" rel="Stylesheet" />
+	<script src="https://logalytics.herokuapp.com/static/js/zepto.min.js"></script>
+	<script src="https://logalytics.herokuapp.com/static/js/xdate.js"></script>
+	<script src="https://logalytics.herokuapp.com/static/js/fastclick.min.js"></script>
+	<apex:includeScript value="{!$Resource.logalytics_library}" />
+	<script type="text/javascript">
+		if(!LOG){ var LOG = {};}
+		var eventJSON = '{!EventJSON}';
+		if(eventJSON != ''){
+			LOG.event = JSON.parse(eventJSON);
+			console.log(LOG.event); 
+		}
+		
+		// Attach fastclick to all clickable DOM elements
+		window.addEventListener('load', function () {
+			FastClick.attach(document.body);
+		}, false);
+		
+		function bindChanges(){
+			for(var i=0; i < LOG.event.changes.length; i++){
+				var change   = LOG.event.changes[i];
+				var name	 = change.name;
+				var	oldValue = change.oldValue ? change.oldValue : "";
+				var	newValue = change.newValue ? change.newValue : "";
+				$("#object-table").append('<tr><td><strong>Field</strong></td><td>' + name + '</td></tr>');
+				$("#object-table").append('<tr><td><strong>Previous</strong></td><td>' + oldValue + '</td></tr>');
+				$("#object-table").append('<tr><td><strong>Updated</strong></td><td>' + newValue + '</td></tr>');
+				$("#object-table").append('<tr><td colspan=2></td></tr>');
+			}
+		}
+		
+		Zepto(function($){
+			LOG.registerEventHandlers();
+			$("#objectName").text(LOG.event.objectName);
+			if(LOG.event.changes.length > 0){
+				bindChanges();
+			}
+		});
+	</script>
+</head>
+	<div id="details-header" style="width:320px;text-align:center">
+		<a id="back-btn" href="#" style="text-decoration: none; text-weight: normal; float: left;color:#00f">Back</a>
+		<span id="details-header-text"></span>
+	</div>
+	<strong>Object: </strong> <span id="objectName"></span>
+	<p>
+		<strong>Changes</strong>
+		<table id="object-table" style="width:100%"></table>
+	</p>
+	<div id="stretch"></div>
+</apex:page>

@@ -160,6 +160,10 @@
 		});
 	</script>
 </head>
+	<div id="details-header" style="width:320px;text-align:center">
+		<a id="back-btn" href="#" style="text-decoration: none; text-weight: normal; float: left;color:#00f">Back</a>
+		<span id="details-header-text"></span>
+	</div>
 	<table style="width:100%">
 		<tr><td><strong>User:</strong></td><td><span id="UserName"></span></td></tr>
 		<tr><td><strong>IP:</strong></td><td><span id="loginSourceIp"></span></td></tr>
