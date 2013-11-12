@@ -1,0 +1,47 @@
+<apex:page sidebar="false" showHeader="false" controller="LogalyticsEventDetailController">
+<head>
+	<title>Logalytics</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
+	<meta name="apple-mobile-web-app-capable" content="yes" />
+	<meta name="format-detection" content="telephone=no" />
+	<link href="{!$Resource.logalytics_styles}" type="text/css" rel="Stylesheet" />
+	<script src="https://logalytics.herokuapp.com/static/js/zepto.min.js"></script>
+	<script src="https://logalytics.herokuapp.com/static/js/xdate.js"></script>
+	<script src="https://logalytics.herokuapp.com/static/js/fastclick.min.js"></script>
+	<apex:includeScript value="{!$Resource.logalytics_library}" />
+	<script type="text/javascript">
+		Zepto(function($){
+			LOG.registerEventHandlers();
+		});
+	</script>
+</head>
+	<div id="details-header" style="width:320px;text-align:center">
+		<a id="back-btn" href="#" style="text-decoration: none; text-weight: normal; float: left;color:#00f">Back</a>
+		<span id="details-header-text">Header</span>
+	</div>
+	EventID: {!EventId}
+	<p>
+		Your Salesforce org is currently being analyzed. Events and insights will begin to appear within the hour.<br/>
+	</p>
+	
+	<p>
+		Events are delivered to the activity feed in 2 formats:
+		<ul>
+			<li>Alerts are highlighted in red and notify you when something may need immediate attention.</li>
+			<li>Info events are highlighted in green provide informational insights.</li>
+		</ul>
+	</p>
+	
+	<p>
+		Logalytics monitors many types of events in Salesforce:
+		<ul>
+			<li>LoginHistory</li>
+			<li>User adoption and activity</li>
+			<li>Metadata Changes</li>
+			<li>Mass insert/update/delete activity</li>
+			<li>Profile and User changes</li>
+			<li>Unit test coverage</li>
+			<li>API Usage</li>
+		</ul>
+	</p>
+</apex:page>

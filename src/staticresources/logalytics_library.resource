@@ -1,5 +1,11 @@
 if(!LOG) var LOG = {};
 
+LOG.registerEventHandlers = function(eventid){	
+	$('#details-header').live('click',function(event){
+		window.location = 'LogalyticsFeed';
+	});
+}
+
 LOG.getEvent = function(eventid){
 	var event = null;
 	for (var i=0;i<LOG.events.length;i++){

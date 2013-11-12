@@ -1,6 +1,6 @@
 <apex:page sidebar="false" showHeader="false" controller="LogalyticsFeedController">
 <head>
-	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes"/>
 	<meta name="apple-mobile-web-app-capable" content="yes" />
 	<link href="{!$Resource.logalytics_styles}" type="text/css" rel="Stylesheet" />
 	<script src="https://logalytics.herokuapp.com/static/js/zepto.min.js"></script>
@@ -9,11 +9,11 @@
 	<script type="text/javascript">
 		if(!LOG) var LOG = {};
 		LOG.api_url 	= "https://logalytics.herokuapp.com";
-		LOG.token 		= '{!SessionID}';		
+		LOG.token 		= '{!SessionID}';	
 		LOG.eventId		= 'event_id';
 		LOG.data		= '{!FeedData}';
 		LOG.events 		= JSON.parse(LOG.data);
-		console.log(LOG.events);				
+		console.log(LOG.events);
 		
 		var frameInitialized = false;
 		LOG.onFrameLoaded = function(){
@@ -21,7 +21,6 @@
 				frameInitialized = true;
 				return;
 			}
-			//alert('frame loaded');
 			$("#details-image-loader").hide();
 			$("#frame").show();
 		};
@@ -32,13 +31,9 @@
 			$('.feed-item').live('click',function(event){
 				LOG.eventId = $(this).attr('id');
 				LOG.event = LOG.getEvent(LOG.eventId);
-				$("#container").hide();
-				$("#details-image-loader").show();
-				$("#details-header-text").text(LOG.event.EventSubject);
-				
-				var endpoint = LOG.api_url + '/api/events/' + LOG.eventId + '/template?security-token=' + LOG.token;
-				$('#frame').attr('src', endpoint);
-				$("#details").show();
+				var url = LOG.event.EventTemplate + '?id=' + LOG.eventId + "&token=" + LOG.token;
+				//alert('Redirecting to URL ' + url);
+				window.location = url;
 			});
 			
 			$('#details-header').on('click',function(event){
@@ -52,14 +47,14 @@
 	<apex:includeScript value="{!$Resource.logalytics_library}" />
 </head>
 	<div id="container"></div>
-	<div id="details" style="margin:0px;padding:0px;display:none;position:fixed;width:320px;">
+	<div id="details" style="margin:0px;padding:0px;display:none;position:fixed;width:320px;-webkit-overflow-scrolling: touch">
 		<div id="details-header" style="width:320px;text-align:center;">
 			<a id="back-btn" href="#" style="text-decoration: none; text-weight: normal; float: left;color:#00f">Back</a>
 			<span id="details-header-text"></span>
 		</div>
 		<img id="details-image-loader" class="centered" style="display:none;" src="https://logalytics.herokuapp.com/static/img/ajax-loader.gif"></img>
-		<div style="overflow:auto;-webkit-overflow-scrolling:touch">
-			<iframe id="frame" frameBorder="0" onload="LOG.onFrameLoaded();" style="width:100%;height:100%"></iframe>
+		<div style="overflow:scroll !important; -webkit-overflow-scrolling:touch !important;">
+			<iframe id="frame" frameBorder="0" onload="LOG.onFrameLoaded();" style="width:100%;height:100%;overflow:scroll !important; -webkit-overflow-scrolling:touch !important;"></iframe>
 		</div>
 	</div>
 </apex:page>

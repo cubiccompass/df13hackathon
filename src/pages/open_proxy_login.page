@@ -1,0 +1,177 @@
+<apex:page sidebar="false" showHeader="false" controller="LogalyticsEventDetailController">
+<head>
+	<title>Logalytics</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
+	<meta name="apple-mobile-web-app-capable" content="yes" />
+	<meta name="format-detection" content="telephone=no" />
+	<link href="{!$Resource.logalytics_styles}" type="text/css" rel="Stylesheet" />
+	<script src="https://logalytics.herokuapp.com/static/js/zepto.min.js"></script>
+	<script src="https://logalytics.herokuapp.com/static/js/xdate.js"></script>
+	<script src="https://logalytics.herokuapp.com/static/js/fastclick.min.js"></script>
+	<apex:includeScript value="{!$Resource.logalytics_library}" />
+	<script type="text/javascript">
+		Zepto(function($){
+			LOG.registerEventHandlers();
+		});
+	</script>
+	<script type="text/javascript"
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDSMGzW9itG5qGj2EW2HbKjASRtfk9xmHg&sensor=false">
+    </script>
+	<script type="text/javascript">
+		var frozen 			= false;
+		var case_created	= false;
+		if(!LOG){ var LOG = {};}
+		var eventJSON = '{!EventJSON}';
+		if(eventJSON != ''){
+			LOG.event = JSON.parse(eventJSON);
+			console.log(LOG.event);
+		}
+		LOG.token = '{!Token}';
+		if(LOG.token == '' || LOG.token == 'null'){
+			alert('Missing security token. Could not load details.');
+		}
+		
+		// Attach fastclick to all clickable DOM elements
+		window.addEventListener('load', function () {
+			FastClick.attach(document.body);
+		}, false);
+		
+		function bindProperties(){
+			$("#UserName").text(LOG.event.UserName);
+			$("#SourceIp").text(LOG.event.SourceIp);
+			$("#CityName").text(LOG.event.data.CityName);
+			$("#RegionName").text(LOG.event.data.RegionName);
+			$("#CountryName").text(LOG.event.data.CountryName);
+			$("#Platform").text(LOG.event.Platform);
+			$("#Application").text(LOG.event.Application);
+			$("#UserType").text(LOG.event.data.UserType);
+			var dt = new XDate( parseInt(LOG.event.timestamp) );
+			$("#timestamp").text( dt.toString() );
+		}
+		
+		function initializeMap() {
+			var lat 	= parseFloat(LOG.event.lat);
+			var lng 	= parseFloat(LOG.event.long);
+			var mapOptions = {
+				center: new google.maps.LatLng(lat, lng),
+				zoom: 10,
+				mapTypeId: google.maps.MapTypeId.ROADMAP
+			};
+			var map = new google.maps.Map(document.getElementById("map-canvas"), mapOptions);
+			
+			var marker = new google.maps.Marker({
+				position: new google.maps.LatLng(lat, lng),
+				map: map,
+				title: 'Open Proxy Login'
+			});
+		}
+		google.maps.event.addDomListener(window, 'load', initializeMap);
+		
+		Zepto(function($){
+			bindProperties();
+			
+			$("#show-explanation").live('click',function(event){
+				$("#explanation").toggle();
+				return false;
+			});
+			/*
+			TODO: These become Javascript remoting calls to controller methods that freeze user and create case.
+			*/
+			$("#freeze-user-btn").live('click',function(event){
+				if(frozen){ return;}
+				var r = confirm('Freezing User Account. Sure?');
+				if(r == false){ return; }
+				$("#loading-img").show();
+				$.ajax({
+					url: "/api/users/" + LOG.event.EntityId + "/freeze",
+					type: "POST",
+					beforeSend: function(xhr){
+						xhr.setRequestHeader('x-security-token', LOG.token);
+					},
+					success: function(data) {						
+						$("#loading-img").hide();
+						console.log(data);
+						LOG.response = JSON.parse(data);
+						console.log(LOG.response);
+						$("#freeze-user-btn").removeClass("red-background");
+						$("#freeze-user-btn").text("User Frozen");
+						frozen = true;
+					},
+					error: function(xhr, status, error) {
+						$("#loading-img").hide();
+						console.log(error);
+						console.log(status);
+						alert("error: " + status);
+					}
+				});
+				return false;
+			});
+			
+			$("#create-case-btn").live('click',function(event){
+				if(case_created){ return;}
+				$("#loading-img").show();
+				var caseRequest = {};
+				caseRequest.origin		= "Logalytics";
+				caseRequest.subject		= "Open Proxy Login Event: " + LOG.event.UserName;
+				caseRequest.description	= LOG.event.UserName + " logged into Salesforce from IP " + LOG.event.data.Address + ". Location: " + 
+					LOG.event.data.CityName + ", " + LOG.event.data.RegionName + " " + LOG.event.data.CountryName + ". This IP address has a very high probability of being a known open proxy (aka zombie) computer.";
+				caseRequest.priority	= "High";
+				$.ajax({
+					url: "/api/cases",
+					type: "POST",
+					dataType: 'json',
+					data: JSON.stringify(caseRequest),
+					beforeSend: function(xhr){
+						xhr.setRequestHeader('x-security-token', LOG.token);
+					},
+					success: function(data) {
+						$("#loading-img").hide();
+						console.log(data);
+						$("#create-case-btn").removeClass("green-background");
+						$("#create-case-btn").text("Case Created");
+						case_created = true;
+					},
+					error: function(xhr, status, error) {
+						$("#loading-img").hide();
+						console.log(error);
+						console.log(status);
+						alert("error: " + status);
+					}
+				});
+				return false;
+			});
+		});
+	</script>
+</head>
+<body id="container">
+	EventJSON: {!EventJSON}
+	<table style="width:100%">
+		<tr><td><strong>User:</strong></td><td><span id="UserName"></span></td></tr>
+		<tr><td><strong>IP:</strong></td><td><span id="SourceIp"></span></td></tr>
+		<tr><td><strong>Country</strong></td><td><span id="CountryName"></span></td></tr>
+		<tr><td><strong>Region</strong></td><td><span id="RegionName"></span></td></tr>
+		<tr><td><strong>City</strong></td><td><span id="CityName"></span></td></tr>
+		<tr><td><strong>Platform</strong></td><td><span id="Platform"></span></td></tr>
+		<tr><td><strong>Application</strong></td><td><span id="Application"></span></td></tr>
+		<tr><td><strong>Login Type</strong></td><td><span id="UserType"></span></td></tr>
+		<tr><td><strong>Date/Time</strong></td><td><span id="timestamp"></span></td></tr>
+	</table>
+	
+	<p>
+	Open Proxies are typically compromised "zombie" computers. They are running a proxy service that was installed by a virus or other malware. <a id="show-explanation" href="#">Read more...</a>
+	</p>
+	<div id="explanation" style="display: none">
+		<p>
+		The owner of the computer is typically unaware that their computer is being used as a proxy, enabling fraudsters to use the legitimate owner's internet connection to send spam, commit credit card fraud, and engage in other illegal activity.
+		</p>
+		<p>
+		These open proxies change frequently, as home users cycle through IP addresses and as anti-virus software clean up infections. This category also includes legitimate anonymizing services (listed as anonymous proxies) that cycle their IP addresses frequently in an effort to help their clients get around restricted sites or services that block known anonymous proxies.
+		</p>
+	</div>
+	<img id="loading-img" src="https://logalytics.herokuapp.com/static/img/ajax-loader.gif" style="margin-left:155px; display: none;" />
+	<div id="freeze-user-btn" class="btn red-background">Freeze User</div>
+	<div id="create-case-btn" class="btn green-background">Create Case</div>
+	<div id="map-canvas"></div><br/>
+	<div id="stretch"></div>
+</body>
+</apex:page>
