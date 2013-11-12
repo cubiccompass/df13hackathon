@@ -88,6 +88,7 @@
 				map: map,
 				title: 'Open Proxy Login'
 			});
+			map.setOptions({draggable: false, zoomControl: false, scrollwheel: false, disableDoubleClickZoom: true});
 		}
 		google.maps.event.addDomListener(window, 'load', initializeMap);
 		

@@ -1,0 +1,93 @@
+<apex:page sidebar="false" showHeader="false" controller="LogalyticsEventDetailController">
+<head>
+	<title>Logalytics</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
+	<meta name="apple-mobile-web-app-capable" content="yes" />
+	<meta name="format-detection" content="telephone=no" />
+	<link href="{!$Resource.logalytics_styles}" type="text/css" rel="Stylesheet" />
+	<script src="https://logalytics.herokuapp.com/static/js/zepto.min.js"></script>
+	<script src="https://logalytics.herokuapp.com/static/js/xdate.js"></script>
+	<script src="https://logalytics.herokuapp.com/static/js/fastclick.min.js"></script>
+	<apex:includeScript value="{!$Resource.logalytics_library}" />	
+	<script type="text/javascript">
+		if(!LOG){ var LOG = {};}
+		var eventJSON = '{!EventJSON}';
+		if(eventJSON != ''){
+			LOG.event = JSON.parse(eventJSON);
+			console.log(LOG.event); 
+		}
+		
+		window.addEventListener('load', function () {
+			FastClick.attach(document.body);
+		}, false);
+		
+		Zepto(function($){
+			LOG.registerEventHandlers();
+			$("#test-coverage").text(LOG.event.coverage + "%");
+			$("#test-run").text(LOG.event.run);
+			$("#test-files").text(LOG.event.totalfiles);
+			$("#test-failed").text(LOG.event.fail);
+			$("#test-totalnotcovered").text(LOG.event.totalnotcovered);
+			
+			if(parseInt(LOG.event.coverage < 75) ){
+				$("#test-coverage").addClass("red");
+			}
+			
+			if(LOG.event.failures.length == 0){
+				$("#test-failures").append("(none)<hr/>");
+			}
+			for(var i=0; i < LOG.event.failures.length; i++){
+				$("#test-failures").append("Name: " + LOG.event.failures[i].name + "<br/>");
+				$("#test-failures").append(LOG.event.failures[i].value + "<hr/>");
+			}
+			
+			if(LOG.event.warnings.length == 0){
+				$("#test-warnings").append("(none)<hr/>");
+			}
+			for(var i=0; i < LOG.event.warnings.length; i++){
+				$("#test-warnings").append(LOG.event.warnings[i].value + "<hr/>");
+			}
+		});
+	</script>
+</head>
+	<table style="width: 100%">
+		<tr><td>Overall Test Coverage:</td><td><span id="test-coverage"></span></td></tr>
+		<tr><td>Total Tests:</td><td><span id="test-run"></span> tests in <span id="test-files"></span> files</td></tr>
+		<tr><td>Tests Failed:</td><td><span id="test-failed"></span></td></tr>
+		<tr><td>Lines Not Covered:</td><td><span id="test-totalnotcovered"></span></td></tr>
+	</table>
+	
+	<p>
+	<strong>Failures:</strong><br/>
+	<div id="test-failures"></div>
+	</p>
+	
+	<p>
+	<strong>Warnings:</strong><br/>
+	<div id="test-warnings"></div>
+	</p>
+		
+	<p>
+	To facilitate the development of robust, error-free code, Apex supports the creation and execution of unit tests. Unit tests are class methods that verify whether a particular piece of code is working properly. Unit test methods take no arguments, commit no data to the database, send no emails, and are flagged with the testMethod keyword in the method definition.
+	</p>
+	
+	<strong>Code Coverage by Unit Tests</strong>
+	<p>
+	Before you can deploy your code or package it for the Force.com AppExchange, the following must be true:
+	<ul>
+		<li>At least 75% of your Apex code must be covered by unit tests, and all of those tests must complete successfully.
+		Note the following.
+		<ul>
+			<li>When deploying to a production organization, every unit test in your organization namespace is executed.</li>
+			<li>Calls to System.debug are not counted as part of Apex code coverage.</li>
+			<li>Test methods and test classes are not counted as part of Apex code coverage.</li>
+			<li>While only 75% of your Apex code must be covered by tests, your focus shouldn't be on the percentage of code that is covered. Instead, you should make sure that every use case of your application is covered, including positive and negative cases, as well as bulk and single record. This should lead to 75% or more of your code being covered by unit tests.</li>
+		</ul>
+		</li>
+		<li>Every trigger must have some test coverage.</li>
+		<li>All classes and triggers must compile successfully.</li>
+		<li>If your test calls another class or causes a trigger to execute, that Apex is included in the total amount used for calculating the percentage of code covered.</li>
+	</ul>		
+	</p>
+	<div id="stretch"></div>
+</apex:page>

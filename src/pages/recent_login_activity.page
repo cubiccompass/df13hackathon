@@ -1,146 +1,150 @@
 <apex:page sidebar="false" showHeader="false" controller="LogalyticsEventDetailController">
 <head>
-	<title>Logalytics</title>
-	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
-	<meta name="apple-mobile-web-app-capable" content="yes" />
-	<meta name="format-detection" content="telephone=no" />
-	<link href="{!$Resource.logalytics_styles}" type="text/css" rel="Stylesheet" />
-	<script src="https://logalytics.herokuapp.com/static/js/zepto.min.js"></script>
-	<script src="https://logalytics.herokuapp.com/static/js/xdate.js"></script>
-	<script src="https://logalytics.herokuapp.com/static/js/fastclick.min.js"></script>	
-	<script src="https://logalytics.herokuapp.com/static/js/chartlets.min.js"></script>
-	<apex:includeScript value="{!$Resource.logalytics_library}" />
-	<script type="text/javascript">
-		function compareTimestamp(a,b) {
-			if (a.ts < b.ts)
-				return -1;
-			if (a.ts > b.ts)
-				return 1;
-			return 0;
-		}
-		function drawHourlyChart() {
-			var dataSet = "";
-			console.log(LOG.event.hourlyData);
-			LOG.event.hourlyData.sort(compareTimestamp);
-			console.log(LOG.event.hourlyData);
-			var min = 9999999999;
-			var max = 0;
-			for(var i=0; i < LOG.event.hourlyData.length; i++){
-				var dataPoint = LOG.event.hourlyData[i]
-				dataSet += " " + dataPoint.value;
-				if(dataPoint.value > max){
-					max = dataPoint.value;
-				}
-				if(dataPoint.value < min){
-					min = dataPoint.value;
-				}
-			}
-			
-			$("#charlet-canvas").attr("data-sets", "[" + dataSet + "]");
-			$("#charlet-canvas").attr("data-range", (min-1) + " " + (max+1));
-			Chartlets.render();
-		}
-		
-		function drawDailyChart(days){
-			var dataSet = "";
-			console.log(LOG.event.dailyData);
-			LOG.event.hourlyData.sort(compareTimestamp);
-			console.log(LOG.event.dailyData);
-			var min = 9999999999;
-			var max = 0;
-			var samples = days;
-			if(LOG.event.dailyData.length < samples){
-				samples = LOG.event.dailyData.length;
-			}
-			for(var i=0; i < samples; i++){
-				var dataPoint = LOG.event.dailyData[i]
-				dataSet += " " + dataPoint.value;
-				if(dataPoint.value > max){
-					max = dataPoint.value;
-				}
-				if(dataPoint.value < min){
-					min = dataPoint.value;
-				}
-			}
-			
-			$("#charlet-canvas").attr("data-sets", "[" + dataSet + "]");
-			$("#charlet-canvas").attr("data-range", (min-1) + " " + (max+1));
-			Chartlets.render();
-		}
-		
-		function bindActiveUsers(){
-			$("#active-users-table").append('<tr><td><strong>User</strong></td><td align="center"><strong>Login Count</strong></td></tr>');
-			for(var i=0; i < LOG.event.users.length; i++){
-				var user = LOG.event.users[i];
-				$("#active-users-table").append('<tr><td>' + user.name + '</td><td align="center">' + user.value + '</td></tr>');
-			}
-		}
-		
-		function bindLoginStatus(){
-			$("#login-status-table").append('<tr><td><strong>Status Type</strong></td><td align="center"><strong>Count</strong></td></tr>');
-			for(var i=0; i < LOG.event.status.length; i++){
-				var status = LOG.event.status[i];
-				$("#login-status-table").append('<tr><td>' + status.name + '</td><td align="center">' + status.value + '</td></tr>');
-			}
-		}
-		
-		if(!LOG){ var LOG = {};}
-		var eventJSON = '{!EventJSON}';
-		if(eventJSON != ''){
-			LOG.event = JSON.parse(eventJSON);
-			console.log(LOG.event);
-		}
-		
-		// Attach fastclick to all clickable DOM elements
-		window.addEventListener('load', function () {
-			FastClick.attach(document.body);
-		}, false);
-		
-		Zepto(function($){
-			LOG.registerEventHandlers();
-			drawHourlyChart();
-			
-			$(".button").on('click', function(e){
-				$(".button").removeClass('selected');
-				$(this).addClass('selected');
-				var rangeType = $(this).data("type");
-				if(rangeType === "hourly"){
-					drawHourlyChart();
-				}
-				else if(rangeType === "7days"){
-					drawDailyChart(7);
-				}
-				else if(rangeType === "90days"){
-					drawDailyChart(90);
-				}
-			});
-			
-			if(LOG.event.users.length > 0){
-				bindActiveUsers();
-			}
-			if(LOG.event.status.length > 0){
-				bindLoginStatus();
-			}
-		});
-	</script>
+    <title>Logalytics</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="format-detection" content="telephone=no" />
+    <link href="{!$Resource.logalytics_styles}" type="text/css" rel="Stylesheet" />
+    <script src="https://logalytics.herokuapp.com/static/js/zepto.min.js"></script>
+    <script src="https://logalytics.herokuapp.com/static/js/xdate.js"></script>
+    <script src="https://logalytics.herokuapp.com/static/js/fastclick.min.js"></script> 
+    <script src="https://logalytics.herokuapp.com/static/js/chartlets.min.js"></script>
+    <apex:includeScript value="{!$Resource.logalytics_library}" />
+    <script type="text/javascript">
+        function compareTimestamp(a,b) {
+            if (a.ts < b.ts)
+                return -1;
+            if (a.ts > b.ts)
+                return 1;
+            return 0;
+        }
+        function drawHourlyChart() {
+            var dataSet = "";
+            console.log(LOG.event.hourlyData);
+            LOG.event.hourlyData.sort(compareTimestamp);
+            console.log(LOG.event.hourlyData);
+            var min = 9999999999;
+            var max = 0;
+            for(var i=0; i < LOG.event.hourlyData.length; i++){
+                var dataPoint = LOG.event.hourlyData[i]
+                dataSet += " " + dataPoint.value;
+                if(dataPoint.value > max){
+                    max = dataPoint.value;
+                }
+                if(dataPoint.value < min){
+                    min = dataPoint.value;
+                }
+            }
+            
+            $("#charlet-canvas").attr("data-sets", "[" + dataSet + "]");
+            $("#charlet-canvas").attr("data-range", (min-1) + " " + (max+1));
+            Chartlets.render();
+        }
+        
+        function drawDailyChart(days){
+            var dataSet = "";
+            console.log(LOG.event.dailyData);
+            LOG.event.hourlyData.sort(compareTimestamp);
+            console.log(LOG.event.dailyData);
+            var min = 9999999999;
+            var max = 0;
+            var samples = days;
+            if(LOG.event.dailyData.length < samples){
+                samples = LOG.event.dailyData.length;
+            }
+            for(var i=0; i < samples; i++){
+                var dataPoint = LOG.event.dailyData[i]
+                dataSet += " " + dataPoint.value;
+                if(dataPoint.value > max){
+                    max = dataPoint.value;
+                }
+                if(dataPoint.value < min){
+                    min = dataPoint.value;
+                }
+            }
+            
+            $("#charlet-canvas").attr("data-sets", "[" + dataSet + "]");
+            $("#charlet-canvas").attr("data-range", (min-1) + " " + (max+1));
+            Chartlets.render();
+        }
+        
+        function bindActiveUsers(){
+            $("#active-users-table").append('<tr><td><strong>User</strong></td><td align="center"><strong>Login Count</strong></td></tr>');
+            for(var i=0; i < LOG.event.users.length; i++){
+                var user = LOG.event.users[i];
+                $("#active-users-table").append('<tr><td>' + user.name + '</td><td align="center">' + user.value + '</td></tr>');
+            }
+        }
+        
+        function bindLoginStatus(){
+            $("#login-status-table").append('<tr><td><strong>Status Type</strong></td><td align="center"><strong>Count</strong></td></tr>');
+            for(var i=0; i < LOG.event.status.length; i++){
+                var status = LOG.event.status[i];
+                $("#login-status-table").append('<tr><td>' + status.name + '</td><td align="center">' + status.value + '</td></tr>');
+            }
+        }
+        
+        if(!LOG){ var LOG = {};}
+        var eventJSON = '{!EventJSON}';
+        if(eventJSON != ''){
+            LOG.event = JSON.parse(eventJSON);
+            console.log(LOG.event);
+        }
+        
+        // Attach fastclick to all clickable DOM elements
+        window.addEventListener('load', function () {
+            FastClick.attach(document.body);
+        }, false);
+        
+        Zepto(function($){
+            LOG.registerEventHandlers();
+            drawHourlyChart();
+            
+            $(".button").on('click', function(e){
+                $(".button").removeClass('selected');
+                $(this).addClass('selected');
+                var rangeType = $(this).data("type");
+                if(rangeType === "hourly"){
+                    drawHourlyChart();
+                }
+                else if(rangeType === "7days"){
+                    drawDailyChart(7);
+                }
+                else if(rangeType === "90days"){
+                    drawDailyChart(90);
+                }
+            });
+            
+            if(LOG.event.users.length > 0){
+                bindActiveUsers();
+            }
+            if(LOG.event.status.length > 0){
+                bindLoginStatus();
+            }
+        });
+    </script>
 </head>
-	<div id="segmentedPanel" class="horizontal centered">
-		<div class="segmented">
-			<a class="button selected" data-type="hourly">24 Hours</a>
-			<a class="button" data-type="7days">7 Days</a>
-			<a class="button" data-type="90days">90 Days</a>
-		</div>
+	<div id="details-header" style="width:320px;text-align:center">
+		<a id="back-btn" href="#" style="text-decoration: none; text-weight: normal; float: left;color:#00f">Back</a>
+		<span id="details-header-text"></span>
 	</div>
-	
-	<canvas id="charlet-canvas" class="chartlet horizontal centered" data-type="line" data-colors="#4CD964" width="320" height="60" data-opts="stroke:1 shape:smooth cap:circle"></canvas>	
-	<p>
-		<table id="active-users-table" style="width:100%">
-		</table>
-	</p>
-	<p>
-		<table id="login-status-table" style="width:100%">
-		</table>
-	</p>
-	
-	<div id="stretch"></div>
+    <div id="segmentedPanel" class="horizontal centered">
+        <div class="segmented">
+            <a class="button selected" data-type="hourly">24 Hours</a>
+            <a class="button" data-type="7days">7 Days</a>
+            <a class="button" data-type="90days">90 Days</a>
+        </div>
+    </div>
+    
+    <canvas id="charlet-canvas" class="chartlet horizontal centered" data-type="line" data-colors="#4CD964" width="320" height="60" data-opts="stroke:1 shape:smooth cap:circle"></canvas>  
+    <p>
+        <table id="active-users-table" style="width:100%">
+        </table>
+    </p>
+    <p>
+        <table id="login-status-table" style="width:100%">
+        </table>
+    </p>
+    
+    <div id="stretch"></div>
 </apex:page>

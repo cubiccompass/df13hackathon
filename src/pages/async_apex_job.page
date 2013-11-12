@@ -1,59 +1,63 @@
 <apex:page sidebar="false" showHeader="false" controller="LogalyticsEventDetailController">
 <head>
-	<title>Logalytics</title>
-	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
-	<meta name="apple-mobile-web-app-capable" content="yes" />
-	<meta name="format-detection" content="telephone=no" />
-	<link href="{!$Resource.logalytics_styles}" type="text/css" rel="Stylesheet" />
-	<script src="https://logalytics.herokuapp.com/static/js/zepto.min.js"></script>
-	<script src="https://logalytics.herokuapp.com/static/js/xdate.js"></script>
-	<script src="https://logalytics.herokuapp.com/static/js/fastclick.min.js"></script>
-	<apex:includeScript value="{!$Resource.logalytics_library}" />
-	<script type="text/javascript">
-		if(!LOG){ var LOG = {};}
-		var eventJSON = '{!EventJSON}';
-		if(eventJSON != ''){
-			LOG.event = JSON.parse(eventJSON);
-			console.log(LOG.event); 
-		}
-		
-		// Attach fastclick to all clickable DOM elements
-		window.addEventListener('load', function () {
-			FastClick.attach(document.body);
-		}, false);
-		
-		Zepto(function($){
-			LOG.registerEventHandlers();
-			$("#jobsProcessed").text(LOG.event.jobsProcessed);
-			$("#jobItemsProcessed").text(LOG.event.jobItemsProcessed);
-			$("#numberOfErrors").text(LOG.event.numberOfErrors);
-			
-			if(LOG.event.messages != null && LOG.event.messages.length > 0){
-				$("#messages").append("<hr/><strong>Errors:</strong><br/>");
-				for(var i=0; i < LOG.event.messages.length; i++){
-					$("#messages").append(LOG.event.messages[i] + "<br/>");
-				}
-			}
-			
-			if(LOG.event.jobsByStatus != null && LOG.event.jobsByStatus.length > 0){
-				for(var i=0; i < LOG.event.jobsByStatus.length; i++){
-					var status = LOG.event.jobsByStatus[i];
-					$("#jobsByStatus").append('<tr><td>' + status.name + '</td><td align="center">' + status.value + '</td></tr>');
-				}
-			}
-		});
-	</script>
+    <title>Logalytics</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="format-detection" content="telephone=no" />
+    <link href="{!$Resource.logalytics_styles}" type="text/css" rel="Stylesheet" />
+    <script src="https://logalytics.herokuapp.com/static/js/zepto.min.js"></script>
+    <script src="https://logalytics.herokuapp.com/static/js/xdate.js"></script>
+    <script src="https://logalytics.herokuapp.com/static/js/fastclick.min.js"></script>
+    <apex:includeScript value="{!$Resource.logalytics_library}" />
+    <script type="text/javascript">
+        if(!LOG){ var LOG = {};}
+        var eventJSON = '{!EventJSON}';
+        if(eventJSON != ''){
+            LOG.event = JSON.parse(eventJSON);
+            console.log(LOG.event); 
+        }
+        
+        // Attach fastclick to all clickable DOM elements
+        window.addEventListener('load', function () {
+            FastClick.attach(document.body);
+        }, false);
+        
+        Zepto(function($){
+            LOG.registerEventHandlers();
+            $("#jobsProcessed").text(LOG.event.jobsProcessed);
+            $("#jobItemsProcessed").text(LOG.event.jobItemsProcessed);
+            $("#numberOfErrors").text(LOG.event.numberOfErrors);
+            
+            if(LOG.event.messages != null && LOG.event.messages.length > 0){
+                $("#messages").append("<hr/><strong>Errors:</strong><br/>");
+                for(var i=0; i < LOG.event.messages.length; i++){
+                    $("#messages").append(LOG.event.messages[i] + "<br/>");
+                }
+            }
+            
+            if(LOG.event.jobsByStatus != null && LOG.event.jobsByStatus.length > 0){
+                for(var i=0; i < LOG.event.jobsByStatus.length; i++){
+                    var status = LOG.event.jobsByStatus[i];
+                    $("#jobsByStatus").append('<tr><td>' + status.name + '</td><td align="center">' + status.value + '</td></tr>');
+                }
+            }
+        });
+    </script>
 </head>
-	<table>
-		<tr><td><strong>Total Jobs:</strong></td><td><span id="jobsProcessed"></span></td></tr>
-		<tr><td><strong>Total Items Processed:</strong></td><td><span id="jobItemsProcessed"></span></td></tr>
-		<tr><td><strong>Total Errors:</strong></td><td><span id="numberOfErrors"></span></td></tr>
-	</table>
-	
-	<div id="messages"></div>
-	<hr/>
-	<strong>Jobs By Status</strong>
-	<table id="jobsByStatus"></table>
-	
-	<div id="stretch"></div>
+	<div id="details-header" style="width:320px;text-align:center">
+		<a id="back-btn" href="#" style="text-decoration: none; text-weight: normal; float: left;color:#00f">Back</a>
+		<span id="details-header-text"></span>
+	</div>
+    <table>
+        <tr><td><strong>Total Jobs:</strong></td><td><span id="jobsProcessed"></span></td></tr>
+        <tr><td><strong>Total Items Processed:</strong></td><td><span id="jobItemsProcessed"></span></td></tr>
+        <tr><td><strong>Total Errors:</strong></td><td><span id="numberOfErrors"></span></td></tr>
+    </table>
+    
+    <div id="messages"></div>
+    <hr/>
+    <strong>Jobs By Status</strong>
+    <table id="jobsByStatus"></table>
+    
+    <div id="stretch"></div>
 </apex:page>

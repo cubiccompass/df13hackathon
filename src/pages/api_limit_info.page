@@ -1,0 +1,108 @@
+<apex:page sidebar="false" showHeader="false" controller="LogalyticsEventDetailController">
+<head>
+	<title>Logalytics</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
+	<meta name="apple-mobile-web-app-capable" content="yes" />
+	<meta name="format-detection" content="telephone=no" />
+	<link href="{!$Resource.logalytics_styles}" type="text/css" rel="Stylesheet" />
+	<script src="https://logalytics.herokuapp.com/static/js/zepto.min.js"></script>
+	<script src="https://logalytics.herokuapp.com/static/js/xdate.js"></script>
+	<script src="https://logalytics.herokuapp.com/static/js/fastclick.min.js"></script>	
+	<script src="https://logalytics.herokuapp.com/static/js/chartlets.min.js"></script>
+	<apex:includeScript value="{!$Resource.logalytics_library}" />
+	<script type="text/javascript">
+		function compareTimestamp(a,b) {
+			if (a.ts < b.ts)
+				return -1;
+			if (a.ts > b.ts)
+				return 1;
+			return 0;
+		}
+		
+		function drawChart() {
+			var dataSet = "";
+			console.log(LOG.event.trends_pctg);
+			LOG.event.trends_pctg.sort(compareTimestamp);
+			console.log(LOG.event.trends_pctg);
+			var min = 9999999999;
+			var max = 0;
+			for(var i=0; i < LOG.event.trends_pctg.length; i++){
+				var dataPoint = LOG.event.trends_pctg[i]
+				dataSet += " " + dataPoint.value;
+				if(dataPoint.value > max){
+					max = dataPoint.value;
+				}
+				if(dataPoint.value < min){
+					min = dataPoint.value;
+				}
+			}
+			
+			$("#charlet-canvas").attr("data-sets", "[" + dataSet + "]");
+			$("#charlet-canvas").attr("data-range", (min-1) + " " + (max+1));
+			Chartlets.render();
+		}
+		
+		function numberWithCommas(x) {
+			return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+		}
+		
+		if(!LOG){ var LOG = {};}
+		var eventJSON = '{!EventJSON}';
+		if(eventJSON != ''){
+			LOG.event = JSON.parse(eventJSON);
+			console.log(LOG.event);
+		}
+		
+		Zepto(function($){
+			LOG.registerEventHandlers();
+			$("#api-summary").text( LOG.event.EventSummary );
+			$("#api-limit").text( numberWithCommas(LOG.event.limit) );
+			$("#api-used").text( numberWithCommas(LOG.event.used) );
+			$("#api-pctg").text(LOG.event.pctg);
+			drawChart();
+		});
+	</script>
+</head>
+	<div id="details-header" style="width:320px;text-align:center">
+		<a id="back-btn" href="#" style="text-decoration: none; text-weight: normal; float: left;color:#00f">Back</a>
+		<span id="details-header-text"></span>
+	</div>
+	<p><strong><span id="api-summary"></span></strong></p>
+	<canvas id="charlet-canvas" class="chartlet horizontal centered" data-type="line" data-colors="#4CD964" width="320" height="60" data-opts="stroke:1 shape:smooth cap:circle"></canvas>
+	
+	<p>
+	<strong>Current API Usage</strong><br/>
+	<span id="api-used"></span> (<span id="api-pctg"></span>%) 
+	</p>
+	
+	<p>
+	<strong>API Limit (Trailing 24 hours)</strong><br/>
+	<span id="api-limit"></span>
+	</p>
+	
+	<strong>API Request Limits</strong>
+	<p>
+	To maintain optimum performance and ensure that the Force.com API is available to all Salesforce customers, salesforce.com balances transaction loads by imposing a total API request limit.
+	</p>
+	<p>
+	Limits are enforced against the aggregate of all API calls made by the organization in a 24 hour period; limits are not on a per-user basis. When an organization exceeds a limit, all users in the organization may be temporarily blocked from making additional calls. Calls will be blocked until usage for the preceding 24 hours drops below the limit.
+	</p>
+	
+	<p>
+	Any action that sends a call to the API counts toward usage limits, except the following:
+	<ul>
+	<li>Outbound messages</li>
+	<li>Apex callouts</li>
+	</ul>
+	</p>
+	
+	<strong>Increasing Total API Request Limit</strong>
+	<p>
+	The calculation of the API request limit based on user licenses is designed to allow sufficient capacity for your organization based on your number of users. If you need a higher limit and you don't want to purchase additional user licenses or upgrade to Performance Edition, you can purchase additional API calls. For more information, contact your account representative.
+	</p>
+	<p>
+	Before you purchase additional API calls, you should perform a due diligence of your current API usage. Client applications, whether it is your own enterprise applications or partner applications, that make calls to the API can often be optimized to use fewer API calls to do the same work. If you are using a partner product, you should consult with the vendor to verify that the product is making optimal use of the API. A product that makes inefficient use of the API will incur unnecessary cost for your organization.
+	</p>
+	
+	<div id="stretch"></div>
+</apex:page>

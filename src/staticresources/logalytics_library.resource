@@ -1,6 +1,7 @@
 if(!LOG) var LOG = {};
 
-LOG.registerEventHandlers = function(eventid){	
+LOG.registerEventHandlers = function(eventid){
+	$("#details-header-text").text(LOG.event.EventSubject);
 	$('#details-header').live('click',function(event){
 		window.location = 'LogalyticsFeed';
 	});
