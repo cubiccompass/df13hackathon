@@ -245,7 +245,7 @@ a.button {
 	color: #fff;
 }
 
-.btn { 
+.mobile-btn { 
 	height: 32px;	
 	text-align: center; 			
 	padding-top: 15px;

@@ -3,56 +3,29 @@
 	<title>Logalytics</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
 	<meta name="apple-mobile-web-app-capable" content="yes" />
-	<meta name="format-detection" content="telephone=no" />	
+	<meta name="format-detection" content="telephone=no" />
 	<link href="{!$Resource.logalytics_styles}" type="text/css" rel="Stylesheet" />
 	<style type="text/css">
       html { height: 100% }
       body { height: 100%; margin: 0; padding: 0 }
       #map-canvas { height: 100% }
-      	.green-background {
-			background-color: #4CD964;
-			color: #fff;
-		}
-		
-		.red-background {
-			background-color: #FF2D55;
-			color: #fff;
-		}
-		
-		.mobile-btn { 
-			height: 32px;	
-			text-align: center; 			
-			padding-top: 15px;
-			margin-top: 3px;
-			margin-bottom: 3px;
-			margin-left: 5px;
-			margin-right: 5px;
-			-moz-border-radius: 8px;
-			-webkit-border-radius: 8px;
-			border-radius: 8px; /* future proofing */
-			-khtml-border-radius: 8px; /* for old Konqueror browsers */
-		}
-    </style>
+	</style>
 	<script src="https://logalytics.herokuapp.com/static/js/zepto.min.js"></script>
 	<script src="https://logalytics.herokuapp.com/static/js/xdate.js"></script>
 	<script src="https://logalytics.herokuapp.com/static/js/fastclick.min.js"></script>
 	<apex:includeScript value="{!$Resource.logalytics_library}" />
-	<script type="text/javascript">
-		Zepto(function($){
-			LOG.registerEventHandlers();
-		});
-	</script>
 	<script type="text/javascript"
       src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDSMGzW9itG5qGj2EW2HbKjASRtfk9xmHg&sensor=false">
-    </script>
+	</script>
 	<script type="text/javascript">
 		var frozen 			= false;
 		var case_created	= false;
+		
 		if(!LOG){ var LOG = {};}
 		var eventJSON = '{!EventJSON}';
 		if(eventJSON != ''){
 			LOG.event = JSON.parse(eventJSON);
-			console.log(LOG.event);
+			console.log(LOG.event); 
 		}
 		
 		// Attach fastclick to all clickable DOM elements
@@ -60,22 +33,9 @@
 			FastClick.attach(document.body);
 		}, false);
 		
-		function bindProperties(){
-			$("#UserName").text(LOG.event.UserName);
-			$("#loginSourceIp").text(LOG.event.data.Address);
-			$("#CityName").text(LOG.event.data.CityName);
-			$("#RegionName").text(LOG.event.data.RegionName);
-			$("#CountryName").text(LOG.event.data.CountryName);
-			$("#loginPlatform").text(LOG.event.record.Platform);
-			$("#loginApplication").text(LOG.event.record.Application);
-			$("#UserType").text(LOG.event.data.UserType);
-			var dt = new XDate( parseInt(LOG.event.timestamp) );
-			$("#timestamp").text( dt.toString() );
-		}
-		
 		function initializeMap() {
-			var lat 	= parseFloat(LOG.event.lat);
-			var lng 	= parseFloat(LOG.event.long);
+			var lat 	= parseFloat(LOG.event.data.currentLogin.latitude);
+			var lng 	= parseFloat(LOG.event.data.currentLogin.longitude);
 			var mapOptions = {
 				center: new google.maps.LatLng(lat, lng),
 				zoom: 10,
@@ -86,15 +46,16 @@
 			var marker = new google.maps.Marker({
 				position: new google.maps.LatLng(lat, lng),
 				map: map,
-				title: 'Open Proxy Login'
+				title: 'Concurrent Login'
 			});
 		}
+		
 		google.maps.event.addDomListener(window, 'load', initializeMap);
 		
 		function freezeUser() {
         	Visualforce.remoting.Manager.invokeAction(
             	'{!$RemoteAction.LogalyticsEventDetailController.freezeUser}',
-            	LOG.event.record.UserId, 
+            	LOG.event.data.UserId, 
             	function(result, event){
                 	if (event.status) {
                     	$("#loading-img").hide();
@@ -112,11 +73,10 @@
     	}
     	
     	function createCase() {
-    		var description = LOG.event.UserName + " logged into Salesforce from IP " + LOG.event.data.Address + ". Location: " + 
-					LOG.event.data.CityName + ", " + LOG.event.data.RegionName + " " + LOG.event.data.CountryName + ". This IP address has a very high probability of being a known open proxy (aka zombie) computer.";
+    		var description = LOG.event.data.userName + " logged in from 2 geographically separate locations within a short time span.";
         	Visualforce.remoting.Manager.invokeAction(
             	'{!$RemoteAction.LogalyticsEventDetailController.createCase}',
-            	'Open Proxy Login Event: ' + LOG.event.UserName, 
+            	'Concurrent Login Event: ' + LOG.event.data.userName, 
             	description, 
             	function(result, event){
                 	if (event.status) {
@@ -133,14 +93,32 @@
             	{escape: true}
         	);
     	}
-		
+    	
 		Zepto(function($){
-			bindProperties();
+			LOG.registerEventHandlers();
+			$("#username").text(LOG.event.data.userName);
 			
-			$("#show-explanation").live('click',function(event){
-				$("#explanation").toggle();
-				return false;
-			});
+			var prevDT = new XDate(LOG.event.data.previousLogin.timestamp);
+			$("#prevTime").text(prevDT.toString());
+			$("#prevCity").text(LOG.event.data.previousLogin.city);
+			$("#prevCountry").text(LOG.event.data.previousLogin.country);
+			$("#prevRegion").text(LOG.event.data.previousLogin.region);
+			$("#prevTimeZone").text(LOG.event.data.previousLogin.timeZone);			
+			$("#prevDomain").text(LOG.event.data.previousLogin.domain);
+			$("#prevISP").text(LOG.event.data.previousLogin.isp);
+			
+			var currentDT = new XDate(LOG.event.data.currentLogin.timestamp);
+			$("#currentTime").text(currentDT.toString());
+			$("#currentCity").text(LOG.event.data.currentLogin.city);
+			$("#currentCountry").text(LOG.event.data.currentLogin.country);
+			$("#currentRegion").text(LOG.event.data.currentLogin.region);
+			$("#currentTimeZone").text(LOG.event.data.currentLogin.timeZone);
+			$("#currentDomain").text(LOG.event.data.currentLogin.domain);
+			$("#currentISP").text(LOG.event.data.currentLogin.isp);
+			
+			$("#distance").text(LOG.event.data.distance);
+			$("#speed").text(LOG.event.data.mph);
+			$("#elapsedMinutes").text(LOG.event.data.elapsedMinutes);
 			
 			$("#freeze-user-btn").live('click',function(event){
 				if(frozen){ return;}
@@ -159,29 +137,47 @@
 		});
 	</script>
 </head>
-	<table style="width:100%">
-		<tr><td><strong>User:</strong></td><td><span id="UserName"></span></td></tr>
-		<tr><td><strong>IP:</strong></td><td><span id="loginSourceIp"></span></td></tr>
-		<tr><td><strong>Country</strong></td><td><span id="CountryName"></span></td></tr>
-		<tr><td><strong>Region</strong></td><td><span id="RegionName"></span></td></tr>
-		<tr><td><strong>City</strong></td><td><span id="CityName"></span></td></tr>
-		<tr><td><strong>Platform</strong></td><td><span id="loginPlatform"></span></td></tr>
-		<tr><td><strong>Application</strong></td><td><span id="loginApplication"></span></td></tr>
-		<tr><td><strong>Login Type</strong></td><td><span id="UserType"></span></td></tr>
-		<tr><td><strong>Date/Time</strong></td><td><span id="timestamp"></span></td></tr>
+	<p>
+		<strong><span id="username"></span></strong> has logged in from 2 geographically different locations within a short time frame.
+	</p>
+	<p>
+	<strong>Recent Login</strong>
+	<table>
+		<tr><td>Time:</td><td id="currentTime"></td></tr>
+		<tr><td>City</td><td id="currentCity"></td></tr>
+		<tr><td>Country:</td><td id="currentCountry"></td></tr>
+		<tr><td>Region:</td><td id="currentRegion"></td></tr>
+		<tr><td>Time Zone:</td><td id="currentTimeZone"></td></tr>
+		<tr><td>Domain:</td><td id="currentDomain"></td></tr>
+		<tr><td>ISP:</td><td id="currentISP"></td></tr>
 	</table>
+	</p>
 	
 	<p>
-	Open Proxies are typically compromised "zombie" computers. They are running a proxy service that was installed by a virus or other malware. <a id="show-explanation" href="#">Read more...</a>
+	<strong>Previous Login</strong>
+	<table>
+		<tr><td>Time:</td><td id="prevTime"></td></tr>
+		<tr><td>City</td><td id="prevCity"></td></tr>
+		<tr><td>Country:</td><td id="prevCountry"></td></tr>
+		<tr><td>Region:</td><td id="prevRegion"></td></tr>
+		<tr><td>Time Zone:</td><td id="prevTimeZone"></td></tr>
+		<tr><td>Domain:</td><td id="prevDomain"></td></tr>
+		<tr><td>ISP:</td><td id="prevISP"></td></tr>
+	</table>
 	</p>
-	<div id="explanation" style="display: none">
-		<p>
-		The owner of the computer is typically unaware that their computer is being used as a proxy, enabling fraudsters to use the legitimate owner's internet connection to send spam, commit credit card fraud, and engage in other illegal activity.
-		</p>
-		<p>
-		These open proxies change frequently, as home users cycle through IP addresses and as anti-virus software clean up infections. This category also includes legitimate anonymizing services (listed as anonymous proxies) that cycle their IP addresses frequently in an effort to help their clients get around restricted sites or services that block known anonymous proxies.
-		</p>
-	</div>
+	
+	<p>
+	Distance between 2 locations:<br/> 
+	<span id="distance"></span> Miles
+	</p>
+	<p>
+	Elapsed Minutes:
+	<span id="elapsedMinutes"></span>
+	</p>
+	<p>
+	Speed to travel between 2 points:<br/> 
+	<span id="speed"></span> MPH
+	</p>
 	<img id="loading-img" src="https://logalytics.herokuapp.com/static/img/ajax-loader.gif" style="margin-left:155px; display: none;" />
 	<div id="freeze-user-btn" class="mobile-btn red-background">Freeze User</div>
 	<div id="create-case-btn" class="mobile-btn green-background">Create Case</div>
