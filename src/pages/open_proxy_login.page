@@ -3,8 +3,36 @@
 	<title>Logalytics</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
 	<meta name="apple-mobile-web-app-capable" content="yes" />
-	<meta name="format-detection" content="telephone=no" />
+	<meta name="format-detection" content="telephone=no" />	
 	<link href="{!$Resource.logalytics_styles}" type="text/css" rel="Stylesheet" />
+	<style type="text/css">
+      html { height: 100% }
+      body { height: 100%; margin: 0; padding: 0 }
+      #map-canvas { height: 100% }
+      	.green-background {
+			background-color: #4CD964;
+			color: #fff;
+		}
+		
+		.red-background {
+			background-color: #FF2D55;
+			color: #fff;
+		}
+		
+		.mobile-btn { 
+			height: 32px;	
+			text-align: center; 			
+			padding-top: 15px;
+			margin-top: 3px;
+			margin-bottom: 3px;
+			margin-left: 5px;
+			margin-right: 5px;
+			-moz-border-radius: 8px;
+			-webkit-border-radius: 8px;
+			border-radius: 8px; /* future proofing */
+			-khtml-border-radius: 8px; /* for old Konqueror browsers */
+		}
+    </style>
 	<script src="https://logalytics.herokuapp.com/static/js/zepto.min.js"></script>
 	<script src="https://logalytics.herokuapp.com/static/js/xdate.js"></script>
 	<script src="https://logalytics.herokuapp.com/static/js/fastclick.min.js"></script>
@@ -38,12 +66,12 @@
 		
 		function bindProperties(){
 			$("#UserName").text(LOG.event.UserName);
-			$("#SourceIp").text(LOG.event.SourceIp);
+			$("#loginSourceIp").text(LOG.event.data.Address);
 			$("#CityName").text(LOG.event.data.CityName);
 			$("#RegionName").text(LOG.event.data.RegionName);
 			$("#CountryName").text(LOG.event.data.CountryName);
-			$("#Platform").text(LOG.event.Platform);
-			$("#Application").text(LOG.event.Application);
+			$("#loginPlatform").text(LOG.event.record.Platform);
+			$("#loginApplication").text(LOG.event.record.Application);
 			$("#UserType").text(LOG.event.data.UserType);
 			var dt = new XDate( parseInt(LOG.event.timestamp) );
 			$("#timestamp").text( dt.toString() );
@@ -67,6 +95,49 @@
 		}
 		google.maps.event.addDomListener(window, 'load', initializeMap);
 		
+		function freezeUser() {
+        	Visualforce.remoting.Manager.invokeAction(
+            	'{!$RemoteAction.LogalyticsEventDetailController.freezeUser}',
+            	LOG.event.record.UserId, 
+            	function(result, event){
+                	if (event.status) {
+                    	$("#loading-img").hide();
+						$("#freeze-user-btn").removeClass("red-background");
+						$("#freeze-user-btn").text("User Frozen");
+						frozen = true;
+                	} else if (event.type === 'exception') {
+                		alert(event.message);
+                	} else {
+                		alert(event.message);
+                	}
+            	}, 
+            	{escape: true}
+        	);
+    	}
+    	
+    	function createCase() {
+    		var description = LOG.event.UserName + " logged into Salesforce from IP " + LOG.event.data.Address + ". Location: " + 
+					LOG.event.data.CityName + ", " + LOG.event.data.RegionName + " " + LOG.event.data.CountryName + ". This IP address has a very high probability of being a known open proxy (aka zombie) computer.";
+        	Visualforce.remoting.Manager.invokeAction(
+            	'{!$RemoteAction.LogalyticsEventDetailController.createCase}',
+            	'Open Proxy Login Event: ' + LOG.event.UserName, 
+            	description, 
+            	function(result, event){
+                	if (event.status) {
+                    	$("#loading-img").hide();
+						$("#create-case-btn").removeClass("green-background");
+						$("#create-case-btn").text("Case Created");
+						case_created = true;
+                	} else if (event.type === 'exception') {
+                		alert(event.message);
+                	} else {
+                		alert(event.message);
+                	}
+            	}, 
+            	{escape: true}
+        	);
+    	}
+		
 		Zepto(function($){
 			bindProperties();
 			
@@ -74,85 +145,32 @@
 				$("#explanation").toggle();
 				return false;
 			});
-			/*
-			TODO: These become Javascript remoting calls to controller methods that freeze user and create case.
-			*/
+			
 			$("#freeze-user-btn").live('click',function(event){
 				if(frozen){ return;}
 				var r = confirm('Freezing User Account. Sure?');
 				if(r == false){ return; }
 				$("#loading-img").show();
-				$.ajax({
-					url: "/api/users/" + LOG.event.EntityId + "/freeze",
-					type: "POST",
-					beforeSend: function(xhr){
-						xhr.setRequestHeader('x-security-token', LOG.token);
-					},
-					success: function(data) {						
-						$("#loading-img").hide();
-						console.log(data);
-						LOG.response = JSON.parse(data);
-						console.log(LOG.response);
-						$("#freeze-user-btn").removeClass("red-background");
-						$("#freeze-user-btn").text("User Frozen");
-						frozen = true;
-					},
-					error: function(xhr, status, error) {
-						$("#loading-img").hide();
-						console.log(error);
-						console.log(status);
-						alert("error: " + status);
-					}
-				});
+				freezeUser();
 				return false;
 			});
 			
 			$("#create-case-btn").live('click',function(event){
 				if(case_created){ return;}
 				$("#loading-img").show();
-				var caseRequest = {};
-				caseRequest.origin		= "Logalytics";
-				caseRequest.subject		= "Open Proxy Login Event: " + LOG.event.UserName;
-				caseRequest.description	= LOG.event.UserName + " logged into Salesforce from IP " + LOG.event.data.Address + ". Location: " + 
-					LOG.event.data.CityName + ", " + LOG.event.data.RegionName + " " + LOG.event.data.CountryName + ". This IP address has a very high probability of being a known open proxy (aka zombie) computer.";
-				caseRequest.priority	= "High";
-				$.ajax({
-					url: "/api/cases",
-					type: "POST",
-					dataType: 'json',
-					data: JSON.stringify(caseRequest),
-					beforeSend: function(xhr){
-						xhr.setRequestHeader('x-security-token', LOG.token);
-					},
-					success: function(data) {
-						$("#loading-img").hide();
-						console.log(data);
-						$("#create-case-btn").removeClass("green-background");
-						$("#create-case-btn").text("Case Created");
-						case_created = true;
-					},
-					error: function(xhr, status, error) {
-						$("#loading-img").hide();
-						console.log(error);
-						console.log(status);
-						alert("error: " + status);
-					}
-				});
-				return false;
+				createCase();
 			});
 		});
 	</script>
 </head>
-<body id="container">
-	EventJSON: {!EventJSON}
 	<table style="width:100%">
 		<tr><td><strong>User:</strong></td><td><span id="UserName"></span></td></tr>
-		<tr><td><strong>IP:</strong></td><td><span id="SourceIp"></span></td></tr>
+		<tr><td><strong>IP:</strong></td><td><span id="loginSourceIp"></span></td></tr>
 		<tr><td><strong>Country</strong></td><td><span id="CountryName"></span></td></tr>
 		<tr><td><strong>Region</strong></td><td><span id="RegionName"></span></td></tr>
 		<tr><td><strong>City</strong></td><td><span id="CityName"></span></td></tr>
-		<tr><td><strong>Platform</strong></td><td><span id="Platform"></span></td></tr>
-		<tr><td><strong>Application</strong></td><td><span id="Application"></span></td></tr>
+		<tr><td><strong>Platform</strong></td><td><span id="loginPlatform"></span></td></tr>
+		<tr><td><strong>Application</strong></td><td><span id="loginApplication"></span></td></tr>
 		<tr><td><strong>Login Type</strong></td><td><span id="UserType"></span></td></tr>
 		<tr><td><strong>Date/Time</strong></td><td><span id="timestamp"></span></td></tr>
 	</table>
@@ -169,9 +187,8 @@
 		</p>
 	</div>
 	<img id="loading-img" src="https://logalytics.herokuapp.com/static/img/ajax-loader.gif" style="margin-left:155px; display: none;" />
-	<div id="freeze-user-btn" class="btn red-background">Freeze User</div>
-	<div id="create-case-btn" class="btn green-background">Create Case</div>
+	<div id="freeze-user-btn" class="mobile-btn red-background">Freeze User</div>
+	<div id="create-case-btn" class="mobile-btn green-background">Create Case</div>
 	<div id="map-canvas"></div><br/>
 	<div id="stretch"></div>
-</body>
 </apex:page>

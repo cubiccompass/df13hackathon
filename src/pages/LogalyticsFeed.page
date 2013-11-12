@@ -32,29 +32,11 @@
 				LOG.eventId = $(this).attr('id');
 				LOG.event = LOG.getEvent(LOG.eventId);
 				var url = LOG.event.EventTemplate + '?id=' + LOG.eventId + "&token=" + LOG.token;
-				//alert('Redirecting to URL ' + url);
 				window.location = url;
-			});
-			
-			$('#details-header').on('click',function(event){
-				$("#container").show();
-				$("#details").hide();
-				$("#frame").hide();
-				return false;
 			});
 		});
 	</script>
 	<apex:includeScript value="{!$Resource.logalytics_library}" />
 </head>
 	<div id="container"></div>
-	<div id="details" style="margin:0px;padding:0px;display:none;position:fixed;width:320px;-webkit-overflow-scrolling: touch">
-		<div id="details-header" style="width:320px;text-align:center;">
-			<a id="back-btn" href="#" style="text-decoration: none; text-weight: normal; float: left;color:#00f">Back</a>
-			<span id="details-header-text"></span>
-		</div>
-		<img id="details-image-loader" class="centered" style="display:none;" src="https://logalytics.herokuapp.com/static/img/ajax-loader.gif"></img>
-		<div style="overflow:scroll !important; -webkit-overflow-scrolling:touch !important;">
-			<iframe id="frame" frameBorder="0" onload="LOG.onFrameLoaded();" style="width:100%;height:100%;overflow:scroll !important; -webkit-overflow-scrolling:touch !important;"></iframe>
-		</div>
-	</div>
 </apex:page>

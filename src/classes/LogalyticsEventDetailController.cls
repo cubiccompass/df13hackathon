@@ -1,4 +1,4 @@
-public with sharing class LogalyticsEventDetailController {
+global with sharing class LogalyticsEventDetailController {
 	public String Token 	{get; set;}
 	public String EventId 	{get; set;}
 	public String EventJSON {get; set;}
@@ -10,6 +10,26 @@ public with sharing class LogalyticsEventDetailController {
 			EventJSON = getEventDetails();
 		}		
 	}
+	
+	@RemoteAction
+	global static String freezeUser(String userId) {		
+        UserLogin ulRecord = [SELECT Id, UserId, IsFrozen, IsPasswordLocked FROM UserLogin WHERE UserId=:userId];
+        ulRecord.IsFrozen = true;
+        update ulRecord;
+        return 'ok';
+    }
+    
+    @RemoteAction
+	global static String createCase(String subject, String description) {
+		Case newCase 		= new Case();
+		newCase.OwnerId 	= UserInfo.getUserId();
+		newCase.Origin		= 'Logalytics';
+		newCase.Priority 	= 'High';
+		newCase.Subject		= subject;
+		newCase.Description = description;
+        insert newCase;
+        return 'ok';
+    }
 	
 	public String OrganizationID{
 		get{
