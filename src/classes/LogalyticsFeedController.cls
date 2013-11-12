@@ -76,4 +76,9 @@ public with sharing class LogalyticsFeedController {
 			return e.getMessage();
 		}
 	}
+	
+	public CollaborationGroup getLogalyticsGroup(){
+		String groupName = 'Logalytics Alerts';
+		return [SELECT Id, Name FROM CollaborationGroup WHERE Name=:groupName LIMIT 1]; 
+	}
 }

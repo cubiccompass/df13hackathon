@@ -27,6 +27,7 @@
 		
 		Zepto(function($){
 			LOG.bindFeed('container', 'all');
+			$("#loading-img").hide();
 			
 			$('.feed-item').live('click',function(event){
 				LOG.eventId = $(this).attr('id');
@@ -38,5 +39,6 @@
 	</script>
 	<apex:includeScript value="{!$Resource.logalytics_library}" />
 </head>
+	<img id="loading-img" src="https://logalytics.herokuapp.com/static/img/ajax-loader.gif" style="margin-left:155px;" />
 	<div id="container"></div>
 </apex:page>

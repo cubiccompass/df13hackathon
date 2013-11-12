@@ -58,4 +58,15 @@ global with sharing class LogalyticsEventDetailController {
 			return e.getMessage();
 		}
 	}
+	
+	public List<User> getSysAdminUsers(){
+		String profileName = 'System Administrator';
+		String profileId = [SELECT Id FROM Profile WHERE Name=:profileName LIMIT 1].Id;
+		return [SELECT Id, Name FROM User WHERE ProfileId=:profileId];
+	}
+	
+	public CollaborationGroup getLogalyticsGroup(){
+		String groupName = 'Logalytics Alerts';
+		return [SELECT Id, Name FROM CollaborationGroup WHERE Name=:groupName LIMIT 1]; 
+	}
 }

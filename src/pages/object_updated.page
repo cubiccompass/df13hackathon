@@ -10,11 +10,12 @@
 	<script src="https://logalytics.herokuapp.com/static/js/fastclick.min.js"></script>
 	<apex:includeScript value="{!$Resource.logalytics_library}" />
 	<script type="text/javascript">
+		var case_created	= false;
 		if(!LOG){ var LOG = {};}
 		var eventJSON = '{!EventJSON}';
 		if(eventJSON != ''){
 			LOG.event = JSON.parse(eventJSON);
-			console.log(LOG.event); 
+			console.log(LOG.event);
 		}
 		
 		// Attach fastclick to all clickable DOM elements
@@ -41,6 +42,17 @@
 			if(LOG.event.changes.length > 0){
 				bindChanges();
 			}
+			
+			$("#undo-btn").live('click',function(event){
+				alert('undo goes here');
+				return false;
+			});
+			
+			$("#create-case-btn").live('click',function(event){
+				if(case_created){ return;}
+				$("#loading-img").show();
+				createCase();
+			});
 		});
 	</script>
 </head>
@@ -53,5 +65,8 @@
 		<strong>Changes</strong>
 		<table id="object-table" style="width:100%"></table>
 	</p>
+	<img id="loading-img" src="https://logalytics.herokuapp.com/static/img/ajax-loader.gif" style="margin-left:155px; display: none;" />
+	<div id="undo-btn" class="mobile-btn red-background">Undo Modify All</div>
+	<div id="create-case-btn" class="mobile-btn green-background">Create Case</div>
 	<div id="stretch"></div>
 </apex:page>
