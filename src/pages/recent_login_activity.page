@@ -1,4 +1,4 @@
-<apex:page sidebar="false" showHeader="false" controller="LogalyticsEventDetailController">
+<apex:page sidebar="false" standardstylesheets="false" showHeader="false" controller="LogalyticsEventDetailController">
 <head>
     <title>Logalytics</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
@@ -100,8 +100,8 @@
             LOG.registerEventHandlers();
             drawHourlyChart();
             
-            $(".button").on('click', function(e){
-                $(".button").removeClass('selected');
+            $(".seg-button").on('click', function(e){
+                $(".seg-button").removeClass('selected');
                 $(this).addClass('selected');
                 var rangeType = $(this).data("type");
                 if(rangeType === "hourly"){
@@ -122,29 +122,28 @@
                 bindLoginStatus();
             }
         });
-    </script>
+	</script>
 </head>
 	<div id="details-header" style="width:320px;text-align:center">
 		<a id="back-btn" href="#" style="text-decoration: none; text-weight: normal; float: left;color:#00f">Back</a>
 		<span id="details-header-text"></span>
 	</div>
-    <div id="segmentedPanel" class="horizontal centered">
-        <div class="segmented">
-            <a class="button selected" data-type="hourly">24 Hours</a>
-            <a class="button" data-type="7days">7 Days</a>
-            <a class="button" data-type="90days">90 Days</a>
-        </div>
-    </div>
-    
-    <canvas id="charlet-canvas" class="chartlet horizontal centered" data-type="line" data-colors="#4CD964" width="320" height="60" data-opts="stroke:1 shape:smooth cap:circle"></canvas>  
-    <p>
-        <table id="active-users-table" style="width:100%">
-        </table>
-    </p>
-    <p>
-        <table id="login-status-table" style="width:100%">
-        </table>
-    </p>
+	
+	<div class="segmented" style="width: 280px;margin-left: 20px;">
+		<a class="seg-button selected" data-type="hourly">24 Hours</a>
+		<a class="seg-button" data-type="7days">7 Days</a>
+		<a class="seg-button" data-type="90days">90 Days</a>
+	</div>
+	
+    <div style="margin-top: 1px">
+		<canvas id="charlet-canvas" class="chartlet" data-type="line" data-colors="#4CD964" width="320" height="60" data-opts="stroke:1 shape:smooth cap:circle"></canvas>
+	</div>  
+	<p>
+		<table id="active-users-table" style="width:100%"></table>
+	</p>
+	<p>
+		<table id="login-status-table" style="width:100%"></table>
+	</p>
     
     <div id="stretch"></div>
 </apex:page>

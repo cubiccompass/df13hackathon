@@ -97,7 +97,7 @@ h3 {
 	color: #0e0e0e;
 }
 
-.centered {
+.seg-centered {
   position: fixed;
   top: 50%;
   left: 50%;
@@ -142,14 +142,14 @@ div { display: block; }
 	visibility: visible;
 }
 
-.horizontal.centered {
+.seg-horizontal.seg-centered {
 	-webkit-justify-content: center;
 	-webkit-align-item: center;
 	-webkit-box-pack: center;
 	-webkit-box-align: stretch;
 }
 
-.horizontal {
+.seg-horizontal {
 	display: -webkit-box;
 	-webkit-align-item: start;
 	-webkit-box-pack: start;
@@ -164,12 +164,13 @@ user agent stylesheetdiv {
 	display: block;
 }
 
-div.horizontal.centered > .segmented {
+div.seg-horizontal.seg-centered > .segmented {
 	display: -webkit-box;
 	display: -webkit-flex;
 	margin: 10px 15px;
 	-webkit-flex: 1;
 }
+
 .segmented {
 	display: -webkit-inline-box;
 	-webkit-box-orient: horizontal;
@@ -178,13 +179,13 @@ div.horizontal.centered > .segmented {
 	box-sizing: border-box;
 }
 
-.segmented > .button:first-of-type {
+.segmented > .seg-button:first-of-type {
 	border-left: solid 1px #007aff;
 	border-top-left-radius: 4px;
 	border-bottom-left-radius: 4px;
 }
 
-.segmented > .button {
+.segmented > .seg-button {
 	border: solid 1px #007aff;
 	padding: 4px 15px;
 	border-left: none;
@@ -200,11 +201,11 @@ div.horizontal.centered > .segmented {
 	-webkit-flex: 1;
 	text-align: center;
 }
-a.button, a.button.back::before {
+a.seg-button, a.seg-button.back::before {
 	color: #007aff;
 	border-color: #007aff;
 }
-a.button {
+a.seg-button {
 	cursor: pointer;
 	text-decoration: none;
 	font-size: 13pt;
@@ -225,12 +226,12 @@ a.button {
 	background-color: rgba(255,255,255,.01);
 }
 
-.segmented > .button:hover, .segmented > .button.selected {
+.segmented > .seg-button:hover, .segmented > .seg-button.selected {
 	color: #fff;
 	background-color: #007aff;
 	opacity: 1 !important;
 }
-.segmented > .button:last-of-type {
+.segmented > .seg-button:last-of-type {
 	border-top-right-radius: 4px;
 	border-bottom-right-radius: 4px;
 }
