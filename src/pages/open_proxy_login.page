@@ -166,6 +166,7 @@
 	</div>
 	<table style="width:100%">
 		<tr><td><strong>User:</strong></td><td><span id="UserName"></span></td></tr>
+		<tr><td><strong>Date/Time</strong></td><td><span id="timestamp"></span></td></tr>
 		<tr><td><strong>IP:</strong></td><td><span id="loginSourceIp"></span></td></tr>
 		<tr><td><strong>Country</strong></td><td><span id="CountryName"></span></td></tr>
 		<tr><td><strong>Region</strong></td><td><span id="RegionName"></span></td></tr>
@@ -173,7 +174,6 @@
 		<tr><td><strong>Platform</strong></td><td><span id="loginPlatform"></span></td></tr>
 		<tr><td><strong>Application</strong></td><td><span id="loginApplication"></span></td></tr>
 		<tr><td><strong>Login Type</strong></td><td><span id="UserType"></span></td></tr>
-		<tr><td><strong>Date/Time</strong></td><td><span id="timestamp"></span></td></tr>
 	</table>
 	
 	<p>

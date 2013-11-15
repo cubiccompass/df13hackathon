@@ -13,23 +13,12 @@
 		LOG.eventId		= 'event_id';
 		LOG.data		= '{!FeedData}';
 		LOG.events 		= JSON.parse(LOG.data);
-		console.log(LOG.events);
-		
-		var frameInitialized = false;
-		LOG.onFrameLoaded = function(){
-			if(!frameInitialized){
-				frameInitialized = true;
-				return;
-			}
-			$("#details-image-loader").hide();
-			$("#frame").show();
-		};
 		
 		Zepto(function($){
 			LOG.bindFeed('container', 'all');
-			$("#loading-img").hide();
 			
 			$('.feed-item').live('click',function(event){
+				$("#loading-img").show();
 				LOG.eventId = $(this).attr('id');
 				LOG.event = LOG.getEvent(LOG.eventId);
 				var url = LOG.event.EventTemplate + '?id=' + LOG.eventId + "&token=" + LOG.token;
@@ -39,6 +28,6 @@
 	</script>
 	<apex:includeScript value="{!$Resource.logalytics_library}" />
 </head>
-	<img id="loading-img" src="https://logalytics.herokuapp.com/static/img/ajax-loader.gif" style="margin-left:155px;" />
+	<img id="loading-img" src="https://logalytics.herokuapp.com/static/img/ajax-loader.gif" style="position: absolute; left: 155px; top: 175px;display: none;" />
 	<div id="container"></div>
 </apex:page>
