@@ -40,8 +40,8 @@
 		});
 	</script>
 </head>
-	<div id="details-header" style="width:320px;text-align:center">
-		<a id="back-btn" href="#" style="text-decoration: none; text-weight: normal; float: left;color:#00f">Back</a>
+	<div id="details-header">
+		<a id="back-btn" href="#">Back</a>
 		<span id="details-header-text"></span>
 	</div>
 	<strong>User</strong><br/>

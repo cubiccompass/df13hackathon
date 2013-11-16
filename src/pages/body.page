@@ -1,4 +1,4 @@
-<apex:page sidebar="false" showHeader="false" controller="LogalyticsEventDetailController">
+<apex:page sidebar="false" showHeader="false" controller="LogalyticsEventDetailController">apex:page >
 <head>
 	<title>Logalytics</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
@@ -16,12 +16,8 @@
 			LOG.event = JSON.parse(eventJSON);
 			console.log(LOG.event); 
 		}
-		
-		$("#count").text(LOG.event.count);
-		$("#type").text(LOG.event.sObjectType);
-		
 		Zepto(function($){
-			LOG.registerEventHandlers();
+            LOG.registerEventHandlers();
 		});
 	</script>
 </head>
@@ -29,9 +25,4 @@
 		<a id="back-btn" href="#">Back</a>
 		<span id="details-header-text"></span>
 	</div>
-	<table>
-		<tr><td><strong>Type:</strong></td><td><span id="type"></span></td></tr>
-		<tr><td><strong>Records:</strong></td><td><span id="count"></span></td></tr>
-	</table>	
-	<div id="stretch"></div>
 </apex:page>

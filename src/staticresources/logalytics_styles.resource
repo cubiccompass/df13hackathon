@@ -21,6 +21,14 @@ h1{
 	
 }
 
+#back-btn{
+	margin-top:10px;
+	text-decoration: none; 
+	text-weight: normal; 
+	float: left;
+	color:#00f
+}
+
 #container{
 	margin-bottom: 55px;
 }
@@ -35,8 +43,9 @@ h1{
 	float: left;
 }
 #details-header{
-	height: 37px;
 	text-align:center;
+	width:320px;
+	height: 37px;
 	font-weight: bold;
 	clear: both;
 	background-color:#f3f3f3;
@@ -44,6 +53,10 @@ h1{
   	background-size: 100% 1px;
   	background-repeat: no-repeat;
   	background-position: bottom;
+}
+
+#details-header-text{
+	margin-top: 11px;
 }
 
 #details-content{

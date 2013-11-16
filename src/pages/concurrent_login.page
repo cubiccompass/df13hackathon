@@ -33,12 +33,85 @@
 			FastClick.attach(document.body);
 		}, false);
 		
+		function getCurrentInfoWindowContent(){
+			var dt = new XDate(LOG.event.data.currentLogin.timestamp);
+			return '<strong>Recent Login</strong>' +
+				'<table>' +
+					'<tr><td>Time:</td><td>' + dt.toString() + '</td></tr>' +
+					'<tr><td>City</td><td>' + LOG.event.data.currentLogin.city + '</td></tr>' +
+					'<tr><td>Country:</td><td>' + LOG.event.data.currentLogin.country + '</td></tr>' +
+					'<tr><td>Region:</td><td>' + LOG.event.data.currentLogin.region + '</td></tr>' +
+					'<tr><td>Time Zone:</td><td>' + LOG.event.data.currentLogin.timeZone + '</td></tr>' +
+					'<tr><td>Domain:</td><td>' + LOG.event.data.currentLogin.domain + '</td></tr>' +
+					'<tr><td>ISP:</td><td>' + LOG.event.data.currentLogin.isp + '</td></tr>' +
+				'</table>';
+		}
+		
+		function getPreviousInfoWindowContent(){
+			var dt = new XDate(LOG.event.data.previousLogin.timestamp);
+			return '<strong>Previous Login</strong>' +
+				'<table>' +
+					'<tr><td>Time:</td><td>' + dt.toString() + '</td></tr>' +
+					'<tr><td>City</td><td>' + LOG.event.data.previousLogin.city + '</td></tr>' +
+					'<tr><td>Country:</td><td>' + LOG.event.data.previousLogin.country + '</td></tr>' +
+					'<tr><td>Region:</td><td>' + LOG.event.data.previousLogin.region + '</td></tr>' +
+					'<tr><td>Time Zone:</td><td>' + LOG.event.data.previousLogin.timeZone + '</td></tr>' +
+					'<tr><td>Domain:</td><td>' + LOG.event.data.previousLogin.domain + '</td></tr>' +
+					'<tr><td>ISP:</td><td>' + LOG.event.data.previousLogin.isp + '</td></tr>' +
+				'</table>';
+		}
+		
 		function initializeMap() {
 			var mapOptions = {
 				mapTypeId: google.maps.MapTypeId.ROADMAP
 			};
 			var map = new google.maps.Map(document.getElementById("map-canvas"), mapOptions);
-				
+			
+			var lat 	= parseFloat(LOG.event.data.currentLogin.latitude);
+			var lng 	= parseFloat(LOG.event.data.currentLogin.longitude);
+			var prevLat = parseFloat(LOG.event.data.previousLogin.latitude);
+			var prevLng = parseFloat(LOG.event.data.previousLogin.longitude);
+			
+			centerMap(map);
+			
+			var currentmarker = new google.maps.Marker({
+				position: new google.maps.LatLng(lat, lng),
+				map: map,
+				title: 'Current Login'
+			});
+			
+			var previousmarker = new google.maps.Marker({
+				position: new google.maps.LatLng(prevLat, prevLng),
+				map: map,
+				title: 'Previous Login'
+			});
+			map.setOptions({draggable: false, zoomControl: false, scrollwheel: false, disableDoubleClickZoom: true});
+			
+			var currentinfowindow = new google.maps.InfoWindow({
+      			content: getCurrentInfoWindowContent(),
+      			maxWidth: 200
+  			});
+  			var previousinfowindow = new google.maps.InfoWindow({      			
+      			content: getPreviousInfoWindowContent(),
+      			maxWidth: 200
+  			});
+			google.maps.event.addListener(currentmarker, 'click', function() {
+    			currentinfowindow.open(map,currentmarker);
+  			});
+  			google.maps.event.addListener(previousmarker, 'click', function() {
+    			previousinfowindow.open(map,previousmarker);
+  			});
+  			google.maps.event.addListener(currentinfowindow,'closeclick',function(){
+   				currentinfowindow.setMap(null);
+   				centerMap(map);
+			});
+			google.maps.event.addListener(previousinfowindow,'closeclick',function(){
+   				previousinfowindow.setMap(null);
+   				centerMap(map);
+			});
+		}
+		
+		function centerMap(map){
 			var lat 	= parseFloat(LOG.event.data.currentLogin.latitude);
 			var lng 	= parseFloat(LOG.event.data.currentLogin.longitude);
 			var prevLat = parseFloat(LOG.event.data.previousLogin.latitude);
@@ -48,7 +121,7 @@
 			var lat_max = (lat > prevLat ? lat : prevLat);
 			var lng_min = (lng < prevLng ? lng : prevLng);
 			var lng_max = (lng > prevLng ? lng : prevLng);
-						
+			
 			map.setCenter(new google.maps.LatLng(
 				((lat_max + lat_min) / 2.0),
 				((lng_max + lng_min) / 2.0)
@@ -60,19 +133,6 @@
 				//top right
 				new google.maps.LatLng(lat_max, lng_max)
 			));
-			
-			var marker = new google.maps.Marker({
-				position: new google.maps.LatLng(lat, lng),
-				map: map,
-				title: 'Current Login'
-			});
-			
-			marker = new google.maps.Marker({
-				position: new google.maps.LatLng(prevLat, prevLng),
-				map: map,
-				title: 'Previous Login'
-			});
-			map.setOptions({draggable: false, zoomControl: false, scrollwheel: false, disableDoubleClickZoom: true});
 		}
 		
 		google.maps.event.addDomListener(window, 'load', initializeMap);
@@ -97,27 +157,28 @@
         	);
     	}
     	
-    	function createCase() {
-    		var description = LOG.event.data.userName + " logged in from 2 geographically separate locations within a short time span.";
-        	Visualforce.remoting.Manager.invokeAction(
-            	'{!$RemoteAction.LogalyticsEventDetailController.createCase}',
-            	'Concurrent Login Event: ' + LOG.event.data.userName, 
-            	description, 
-            	function(result, event){
-                	if (event.status) {
-                    	$("#loading-img").hide();
+		LOG.createCase = function(subject, description) {
+			Visualforce.remoting.Manager.invokeAction(
+		    	'{!$RemoteAction.LogalyticsEventDetailController.createCase}',
+		    	subject, 
+		    	description, 
+		    	function(result, event){
+		        	if (event.status) {
+		            	$("#loading-img").hide();
 						$("#create-case-btn").removeClass("green-background");
 						$("#create-case-btn").text("Case Created");
 						case_created = true;
-                	} else if (event.type === 'exception') {
-                		alert(event.message);
-                	} else {
-                		alert(event.message);
-                	}
-            	}, 
-            	{escape: true}
-        	);
-    	}
+		        	} else if (event.type === 'exception') {
+		        		$("#loading-img").hide();
+		        		alert(event.message);
+		        	} else {
+		        		$("#loading-img").hide();
+		        		alert(event.message);
+		        	}
+		    	}, 
+		    	{escape: true}
+			);
+		};
     	
 		Zepto(function($){
 			LOG.registerEventHandlers();
@@ -157,18 +218,30 @@
 			$("#create-case-btn").live('click',function(event){
 				if(case_created){ return;}
 				$("#loading-img").show();
-				createCase();
+				var subject 	= 'Concurrent Login Event: ' + LOG.event.data.userName;
+				var description = LOG.event.data.userName + " logged in from 2 geographically separate locations within a short time span.";
+				LOG.createCase(subject, description);
 			});
 		});
 	</script>
 </head>
-	<div id="details-header" style="width:320px;text-align:center">
-		<a id="back-btn" href="#" style="text-decoration: none; text-weight: normal; float: left;color:#00f">Back</a>
+	<div id="details-header">
+		<a id="back-btn" href="#">Back</a>
 		<span id="details-header-text"></span>
 	</div>
 	<p>
 		<strong><span id="username"></span></strong> has logged in from 2 geographically different locations within a short time frame.
+	</p>	
+	<p>
+	Distance between locations: <span id="distance"></span> Miles
 	</p>
+	<p>
+	Time between logins: <span id="elapsedMinutes"></span> Minutes
+	</p>
+	<div id="map-canvas"></div><br/>
+	<img id="loading-img" src="https://logalytics.herokuapp.com/static/img/ajax-loader.gif" style="margin-left:155px; display: none;" />
+	<div id="freeze-user-btn" class="mobile-btn red-background">Freeze User</div>
+	<div id="create-case-btn" class="mobile-btn green-background">Create Case</div>
 	<p>
 	<strong>Recent Login</strong>
 	<table>
@@ -194,18 +267,5 @@
 		<tr><td>ISP:</td><td id="prevISP"></td></tr>
 	</table>
 	</p>
-	
-	<p>
-	Distance between 2 locations:<br/> 
-	<span id="distance"></span> Miles
-	</p>
-	<p>
-	Elapsed Minutes:
-	<span id="elapsedMinutes"></span>
-	</p>
-	<img id="loading-img" src="https://logalytics.herokuapp.com/static/img/ajax-loader.gif" style="margin-left:155px; display: none;" />
-	<div id="freeze-user-btn" class="mobile-btn red-background">Freeze User</div>
-	<div id="create-case-btn" class="mobile-btn green-background">Create Case</div>
-	<div id="map-canvas"></div><br/>
 	<div id="stretch"></div>
 </apex:page>

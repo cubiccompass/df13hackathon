@@ -20,6 +20,12 @@ global with sharing class LogalyticsEventDetailController {
     }
     
     @RemoteAction
+	global static String resetPassword(String userId) {
+		ResetPasswordResult result = System.resetPassword(userId, true);        
+        return 'ok';
+    }
+    
+    @RemoteAction
 	global static String createCase(String subject, String description) {
 		Case newCase 		= new Case();
 		newCase.OwnerId 	= UserInfo.getUserId();

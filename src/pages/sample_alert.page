@@ -14,12 +14,8 @@
 		var eventJSON = '{!EventJSON}';
 		if(eventJSON != ''){
 			LOG.event = JSON.parse(eventJSON);
-			console.log(LOG.event); 
+			console.log(LOG.event);
 		}
-		
-		$("#count").text(LOG.event.count);
-		$("#type").text(LOG.event.sObjectType);
-		
 		Zepto(function($){
 			LOG.registerEventHandlers();
 		});
@@ -29,9 +25,22 @@
 		<a id="back-btn" href="#">Back</a>
 		<span id="details-header-text"></span>
 	</div>
-	<table>
-		<tr><td><strong>Type:</strong></td><td><span id="type"></span></td></tr>
-		<tr><td><strong>Records:</strong></td><td><span id="count"></span></td></tr>
-	</table>	
+	<p>
+	This is a sample alert. Logalytics alerts will appear in red, plus send you a push notification if you've enabled notifications for Logalytics.
+	</p>
+	
+	<p>
+	Examples of alerts include:
+	<ul>
+		<li>Suspicious login activity from a virus infected computer</li>
+		<li>Repeated invalid password attempts</li>
+		<li>Profile modifications that grant "Modify All" permissions to large user segments</li>
+	</ul>
+	</p>
+	
+	<p>
+	New types alerts are added every 2-3 weeks and will automatically appear with your Logalytics subscription.
+	</p>
+	
 	<div id="stretch"></div>
 </apex:page>

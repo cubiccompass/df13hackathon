@@ -35,29 +35,6 @@
 			FastClick.attach(document.body);
 		}, false);
 		
-		function createCase() {
-    		var description = LOG.event.UserName + " logged into Salesforce from IP " + LOG.event.data.Address + ". Location: " + 
-					LOG.event.data.CityName + ", " + LOG.event.data.RegionName + " " + LOG.event.data.CountryName + ". This IP address has a very high probability of being a known open proxy (aka zombie) computer.";
-        	Visualforce.remoting.Manager.invokeAction(
-            	'{!$RemoteAction.LogalyticsEventDetailController.createCase}',
-            	'Open Proxy Login Event: ' + LOG.event.UserName, 
-            	description, 
-            	function(result, event){
-                	if (event.status) {
-                    	$("#loading-img").hide();
-						$("#create-case-btn").removeClass("green-background");
-						$("#create-case-btn").text("Case Created");
-						case_created = true;
-                	} else if (event.type === 'exception') {
-                		alert(event.message);
-                	} else {
-                		alert(event.message);
-                	}
-            	}, 
-            	{escape: true}
-        	);
-    	}
-		
 		Zepto(function($){
 			LOG.registerEventHandlers();
 			$("#objectName").text(LOG.event.objectName);
@@ -67,8 +44,8 @@
 		});
 	</script>
 </head>
-	<div id="details-header" style="width:320px;text-align:center">
-		<a id="back-btn" href="#" style="text-decoration: none; text-weight: normal; float: left;color:#00f">Back</a>
+	<div id="details-header">
+		<a id="back-btn" href="#">Back</a>
 		<span id="details-header-text"></span>
 	</div>
 	<p>

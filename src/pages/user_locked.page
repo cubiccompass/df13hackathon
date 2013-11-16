@@ -5,30 +5,45 @@
 	<meta name="apple-mobile-web-app-capable" content="yes" />
 	<meta name="format-detection" content="telephone=no" />
 	<link href="{!$Resource.logalytics_styles}" type="text/css" rel="Stylesheet" />
+	<style type="text/css">
+      html { height: 100% }
+      body { height: 100%; margin: 0; padding: 0 }      
+      	.green-background {
+			background-color: #4CD964;
+			color: #fff;
+		}
+		
+		.red-background {
+			background-color: #FF2D55;
+			color: #fff;
+		}
+		
+		.mobile-btn { 
+			height: 32px;	
+			text-align: center; 			
+			padding-top: 15px;
+			margin-top: 3px;
+			margin-bottom: 3px;
+			margin-left: 5px;
+			margin-right: 5px;
+			-moz-border-radius: 8px;
+			-webkit-border-radius: 8px;
+			border-radius: 8px; /* future proofing */
+			-khtml-border-radius: 8px; /* for old Konqueror browsers */
+		}
+    </style>
 	<script src="https://logalytics.herokuapp.com/static/js/zepto.min.js"></script>
 	<script src="https://logalytics.herokuapp.com/static/js/xdate.js"></script>
 	<script src="https://logalytics.herokuapp.com/static/js/fastclick.min.js"></script>
 	<apex:includeScript value="{!$Resource.logalytics_library}" />
 	<script type="text/javascript">
+		var password_reset 	= false;
 		var case_created	= false;
 		if(!LOG){ var LOG = {};}
 		var eventJSON = '{!EventJSON}';
 		if(eventJSON != ''){
 			LOG.event = JSON.parse(eventJSON);
 			console.log(LOG.event); 
-		}
-		
-		function bindChanges(){
-			for(var i=0; i < LOG.event.changes.length; i++){
-				var change   = LOG.event.changes[i];
-				var name	 = change.name;
-				var	oldValue = change.oldValue ? change.oldValue : "";
-				var	newValue = change.newValue ? change.newValue : "";
-				$("#profile-table").append('<tr><td><strong>Field</strong></td><td>' + name + '</td></tr>');
-				$("#profile-table").append('<tr><td><strong>Previous</strong></td><td>' + oldValue + '</td></tr>');
-				$("#profile-table").append('<tr><td><strong>Updated</strong></td><td>' + newValue + '</td></tr>');
-				$("#profile-table").append('<tr><td colspan=2><hr/></td></tr>');
-			}
 		}
 		
 		LOG.createCase = function(subject, description) {
@@ -53,29 +68,45 @@
 		    	{escape: true}
 			);
 		};
-				
+		
+		function resetPassword() {
+        	Visualforce.remoting.Manager.invokeAction(
+            	'{!$RemoteAction.LogalyticsEventDetailController.resetPassword}',
+            	LOG.event.userid,
+            	function(result, event){
+                	if (event.status) {
+                    	$("#loading-img").hide();
+						$("#reset-password-btn").removeClass("red-background");
+						$("#reset-password-btn").text("Password Reset");
+						password_reset = true;
+                	} else if (event.type === 'exception') {
+                		$("#loading-img").hide();
+                		alert(event.message);
+                	} else {
+                		$("#loading-img").hide();
+                		alert(event.message);
+                	}
+            	}, 
+            	{escape: true}
+        	);
+    	}
+		
 		Zepto(function($){
 			LOG.registerEventHandlers();
-			$("#profileName").text(LOG.event.profileName);
-			if(LOG.event.changes.length > 0){
-				bindChanges();
-			}
+			$("#username").text(LOG.event.username);
+			$("#reset-password-btn").live('click',function(event){
+				if(password_reset){ return;}
+				$("#loading-img").show();
+				resetPassword();
+				return false;
+			});
 			
 			$("#create-case-btn").live('click',function(event){
 				if(case_created){ return;}
 				$("#loading-img").show();
-				var subject 	= '"Modify All" Permission Added to Profile ' + LOG.event.profileName;
-				var description = '';
-				for(var i=0; i < LOG.event.changes.length; i++){
-					var change   = LOG.event.changes[i];
-					description += 'Field: ' + change.name + ' ';					
-					var	oldValue = change.oldValue ? change.oldValue : "";
-					var	newValue = change.newValue ? change.newValue : "";
-					description += ' Previous value: ' + oldValue;
-					description += ' New value: ' + newValue;
-				}
+				var subject 	= LOG.event.username + ' locked out';
+				var description	= 'Too many failed password attempts';	
 				LOG.createCase(subject, description);
-				return false;
 			});
 		});
 	</script>
@@ -85,13 +116,12 @@
 		<span id="details-header-text"></span>
 	</div>
 	<p>
-		<strong>Profile:</strong> <span id="profileName"></span>
+		<strong><span id="username"></span></strong> has been locked out.
 	</p>
 	<p>
-		<strong>Changes:</strong>
-		<table id="profile-table" style="width:100%"></table>
+		<strong>Reason: </strong> Too many failed password attempts.
 	</p>
 	<img id="loading-img" src="https://logalytics.herokuapp.com/static/img/ajax-loader.gif" style="margin-left:155px; display: none;" />
+	<div id="reset-password-btn" class="mobile-btn red-background">Reset Password</div>
 	<div id="create-case-btn" class="mobile-btn green-background">Create Case</div>
-	<div id="stretch"></div>
 </apex:page>

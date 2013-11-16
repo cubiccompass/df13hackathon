@@ -16,12 +16,28 @@
 			LOG.event = JSON.parse(eventJSON);
 			console.log(LOG.event); 
 		}
+				
+		window.addEventListener('load', function () {
+			FastClick.attach(document.body);
+		}, false);
 		
-		$("#count").text(LOG.event.count);
-		$("#type").text(LOG.event.sObjectType);
+		function bindPermSet(){
+			$("#permset-table").append('<tr><td colspan="2">Permissions Assigned</td></tr>');
+			for (var property in LOG.event.permset) {
+				if (LOG.event.permset.hasOwnProperty(property)) {
+					var value = LOG.event.permset[property];
+					$("#permset-table").append('<tr><td>' + property + '</td><td>' + value + '</td></tr>'); 
+				}
+			}
+		}
 		
 		Zepto(function($){
 			LOG.registerEventHandlers();
+			$("#username").text(LOG.event.username);
+			$("#permsetname").text(LOG.event.permsetname);
+			if(LOG.event.permset){
+				bindPermSet();
+			}
 		});
 	</script>
 </head>
@@ -29,9 +45,11 @@
 		<a id="back-btn" href="#">Back</a>
 		<span id="details-header-text"></span>
 	</div>
-	<table>
-		<tr><td><strong>Type:</strong></td><td><span id="type"></span></td></tr>
-		<tr><td><strong>Records:</strong></td><td><span id="count"></span></td></tr>
-	</table>	
+	<p>
+		<strong><span id="username"></span></strong> was assigned to permission set <strong><span id="permsetname"></span></strong>.
+	</p>
+	<p>
+		<table id="permset-table"></table>
+	</p>
 	<div id="stretch"></div>
 </apex:page>

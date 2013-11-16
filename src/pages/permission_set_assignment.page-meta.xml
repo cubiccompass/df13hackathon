@@ -2,10 +2,10 @@
 <ApexPage xmlns="http://soap.sforce.com/2006/04/metadata">
     <apiVersion>29.0</apiVersion>
     <availableInTouch>true</availableInTouch>
-    <label>welcome</label>
+    <label>permission_set_assignment</label>
     <packageVersions>
-        <majorNumber>4</majorNumber>
-        <minorNumber>0</minorNumber>
+        <majorNumber>1</majorNumber>
+        <minorNumber>5</minorNumber>
         <namespace>sf_chttr_apps</namespace>
     </packageVersions>
 </ApexPage>

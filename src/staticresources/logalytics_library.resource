@@ -23,10 +23,10 @@ LOG.bindFeed = function(container, eventFilter){
 	var displayedItemsCount = 0;
 	$("#" + container).empty();
 	var dividers = [];
-			
+	
 	LOG.today 		= new XDate();
 	LOG.yesterday 	= new XDate().addDays(-1);
-			
+	
 	$.each(LOG.events, function(index, value){
 		if(eventFilter != 'all' && eventFilter != value.EventType){
 			return true; //continue

@@ -5,12 +5,30 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="format-detection" content="telephone=no" />
     <link href="{!$Resource.logalytics_styles}" type="text/css" rel="Stylesheet" />
+    <style type="text/css">
+		.minmax{
+			font-size: 12px;
+			text-align: center;			
+		}
+		.value {
+			font-weight: bold;
+		}
+		#minmax-label{
+			padding-right: 20px;
+		}
+		#high-value{
+			padding-right: 20px;
+		}
+	</style>
     <script src="https://logalytics.herokuapp.com/static/js/zepto.min.js"></script>
     <script src="https://logalytics.herokuapp.com/static/js/xdate.js"></script>
     <script src="https://logalytics.herokuapp.com/static/js/fastclick.min.js"></script> 
     <script src="https://logalytics.herokuapp.com/static/js/chartlets.min.js"></script>
     <apex:includeScript value="{!$Resource.logalytics_library}" />
     <script type="text/javascript">
+    	var min = 9999999999;
+		var max = 0;
+		
         function compareTimestamp(a,b) {
             if (a.ts < b.ts)
                 return -1;
@@ -20,13 +38,13 @@
         }
         function drawHourlyChart() {
             var dataSet = "";
-            console.log(LOG.event.hourlyData);
+            min = 9999999999;
+            max = 0;
+            
             LOG.event.hourlyData.sort(compareTimestamp);
-            console.log(LOG.event.hourlyData);
-            var min = 9999999999;
-            var max = 0;
+            
             for(var i=0; i < LOG.event.hourlyData.length; i++){
-                var dataPoint = LOG.event.hourlyData[i]
+                var dataPoint = LOG.event.hourlyData[i];
                 dataSet += " " + dataPoint.value;
                 if(dataPoint.value > max){
                     max = dataPoint.value;
@@ -39,15 +57,17 @@
             $("#charlet-canvas").attr("data-sets", "[" + dataSet + "]");
             $("#charlet-canvas").attr("data-range", (min-1) + " " + (max+1));
             Chartlets.render();
+            $("#high-value").text(max);
+			$("#low-value").text(min);
         }
         
         function drawDailyChart(days){
             var dataSet = "";
-            console.log(LOG.event.dailyData);
+            min = 9999999999;
+            max = 0;
+                        
             LOG.event.hourlyData.sort(compareTimestamp);
-            console.log(LOG.event.dailyData);
-            var min = 9999999999;
-            var max = 0;
+            
             var samples = days;
             if(LOG.event.dailyData.length < samples){
                 samples = LOG.event.dailyData.length;
@@ -66,6 +86,8 @@
             $("#charlet-canvas").attr("data-sets", "[" + dataSet + "]");
             $("#charlet-canvas").attr("data-range", (min-1) + " " + (max+1));
             Chartlets.render();
+            $("#high-value").text(max);
+			$("#low-value").text(min);
         }
         
         function bindActiveUsers(){
@@ -124,8 +146,8 @@
         });
 	</script>
 </head>
-	<div id="details-header" style="width:320px;text-align:center">
-		<a id="back-btn" href="#" style="text-decoration: none; text-weight: normal; float: left;color:#00f">Back</a>
+	<div id="details-header">
+		<a id="back-btn" href="#">Back</a>
 		<span id="details-header-text"></span>
 	</div>
 	
@@ -137,7 +159,12 @@
 	
     <div style="margin-top: 1px">
 		<canvas id="charlet-canvas" class="chartlet" data-type="line" data-colors="#4CD964" width="320" height="60" data-opts="stroke:1 shape:smooth cap:circle"></canvas>
-	</div>  
+	</div>
+	<div class="minmax"> 
+		<span id="high-label">High:</span> <span id="high-value" class="value"></span>
+		<span id="low-label">Low:</span> <span id="low-value" class="value"></span>
+	</div>
+	  
 	<p>
 		<table id="active-users-table" style="width:100%"></table>
 	</p>

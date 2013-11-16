@@ -36,6 +36,29 @@
 			}
 		}
 		
+		LOG.createCase = function(subject, description) {
+			Visualforce.remoting.Manager.invokeAction(
+		    	'{!$RemoteAction.LogalyticsEventDetailController.createCase}',
+		    	subject, 
+		    	description, 
+		    	function(result, event){
+		        	if (event.status) {
+		            	$("#loading-img").hide();
+						$("#create-case-btn").removeClass("green-background");
+						$("#create-case-btn").text("Case Created");
+						case_created = true;
+		        	} else if (event.type === 'exception') {
+		        		$("#loading-img").hide();
+		        		alert(event.message);
+		        	} else {
+		        		$("#loading-img").hide();
+		        		alert(event.message);
+		        	}
+		    	}, 
+		    	{escape: true}
+			);
+		};
+				
 		Zepto(function($){
 			LOG.registerEventHandlers();
 			$("#objectName").text(LOG.event.objectName);
@@ -51,13 +74,23 @@
 			$("#create-case-btn").live('click',function(event){
 				if(case_created){ return;}
 				$("#loading-img").show();
-				createCase();
+				var subject 	= LOG.event.objectName + ' Object Modified';
+				var description = '';
+				for(var i=0; i < LOG.event.changes.length; i++){
+					var change   = LOG.event.changes[i];
+					description += 'Field: ' + change.name + ' ';					
+					var	oldValue = change.oldValue ? change.oldValue : "";
+					var	newValue = change.newValue ? change.newValue : "";
+					description += ' Previous value: ' + oldValue;
+					description += ' New value: ' + newValue;
+				}
+				LOG.createCase(subject, description);
 			});
 		});
 	</script>
 </head>
-	<div id="details-header" style="width:320px;text-align:center">
-		<a id="back-btn" href="#" style="text-decoration: none; text-weight: normal; float: left;color:#00f">Back</a>
+	<div id="details-header">
+		<a id="back-btn" href="#">Back</a>
 		<span id="details-header-text"></span>
 	</div>
 	<strong>Object: </strong> <span id="objectName"></span>
@@ -66,7 +99,6 @@
 		<table id="object-table" style="width:100%"></table>
 	</p>
 	<img id="loading-img" src="https://logalytics.herokuapp.com/static/img/ajax-loader.gif" style="margin-left:155px; display: none;" />
-	<div id="undo-btn" class="mobile-btn red-background">Undo Modify All</div>
 	<div id="create-case-btn" class="mobile-btn green-background">Create Case</div>
 	<div id="stretch"></div>
 </apex:page>
