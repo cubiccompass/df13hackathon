@@ -12,20 +12,35 @@ global with sharing class LogalyticsEventDetailController {
 	}
 	
 	@RemoteAction
-	global static String freezeUser(String userId) {		
-        UserLogin ulRecord = [SELECT Id, UserId, IsFrozen, IsPasswordLocked FROM UserLogin WHERE UserId=:userId];
-        ulRecord.IsFrozen = true;
-        update ulRecord;
-        return 'ok';
-    }
+	global static String freezeUser(String userId, String subject, String description) {		
+		UserLogin ulRecord = [SELECT Id, UserId, IsFrozen, IsPasswordLocked FROM UserLogin WHERE UserId=:userId];
+		ulRecord.IsFrozen = true;
+		update ulRecord;
+        
+		LogalyticsEventDetailController.createCase(subject, description);
+		return 'ok';
+	}
     
-    @RemoteAction
+	@RemoteAction
 	global static String resetPassword(String userId) {
 		ResetPasswordResult result = System.resetPassword(userId, true);        
-        return 'ok';
-    }
+		return 'ok';
+	}
+	
+	@RemoteAction
+	global static String createTask(String subject, String description) {
+		Task t 			= new Task();
+		t.OwnerId 		= UserInfo.getUserId();
+		t.Priority		= 'High';
+		t.Subject		= subject;
+		t.Description	= description;
+		t.Status		= 'Not Started';
+		insert t;
+		
+		return 'ok';
+	}
     
-    @RemoteAction
+	@RemoteAction
 	global static String createCase(String subject, String description) {
 		Case newCase 		= new Case();
 		newCase.OwnerId 	= UserInfo.getUserId();
@@ -34,6 +49,26 @@ global with sharing class LogalyticsEventDetailController {
 		newCase.Subject		= subject;
 		newCase.Description = description;
         insert newCase;
+        
+        LogalyticsEventDetailController.createChatterPost(newCase.Id, subject, description);
+        
+        return 'ok';
+    }
+    
+    @RemoteAction
+	global static String createUnitTestCase(String subject, String description) {
+		//User u = [SELECT Id, LastModifiedById from ApexClass WHERE Id=:classId];
+		
+		Case newCase 		= new Case();
+		newCase.OwnerId 	= UserInfo.getUserId();
+		newCase.Origin		= 'Logalytics';
+		newCase.Priority 	= 'High';
+		newCase.Subject		= subject;
+		newCase.Description = description;
+        insert newCase;
+        
+        LogalyticsEventDetailController.createChatterPost(newCase.Id, subject, description);
+        
         return 'ok';
     }
 	
@@ -65,14 +100,34 @@ global with sharing class LogalyticsEventDetailController {
 		}
 	}
 	
-	public List<User> getSysAdminUsers(){
-		String profileName = 'System Administrator';
-		String profileId = [SELECT Id FROM Profile WHERE Name=:profileName LIMIT 1].Id;
-		return [SELECT Id, Name FROM User WHERE ProfileId=:profileId];
+	public static void createChatterPost(Id pid, String title, String body){
+		String communityId = null;
+		ConnectApi.FeedType feedType = ConnectApi.FeedType.Record;
+		
+		ConnectApi.FeedItemInput input = new ConnectApi.FeedItemInput();
+		ConnectApi.MessageBodyInput messageInput = new ConnectApi.MessageBodyInput();
+		ConnectApi.TextSegmentInput textSegment;		
+		
+		messageInput.messageSegments = new List<ConnectApi.MessageSegmentInput>();
+		
+		textSegment = new ConnectApi.TextSegmentInput();
+		textSegment.text = title + ' \n' + body + '\ncc: All Sys Admins: ';
+		messageInput.messageSegments.add(textSegment);
+				
+		for(User u : LogalyticsEventDetailController.getSysAdminUsers()){
+			ConnectApi.MentionSegmentInput mentionSegment = new ConnectApi.MentionSegmentInput();
+			mentionSegment.id = u.Id;
+			messageInput.messageSegments.add(mentionSegment);
+		}
+		
+		input.body = messageInput;
+		
+		ConnectApi.FeedItem feedItemRep = ConnectApi.ChatterFeeds.postFeedItem(communityId, feedType, pid, input, null);
 	}
 	
-	public CollaborationGroup getLogalyticsGroup(){
-		String groupName = 'Logalytics Alerts';
-		return [SELECT Id, Name FROM CollaborationGroup WHERE Name=:groupName LIMIT 1]; 
+	public static List<User> getSysAdminUsers(){
+		String profileName = 'System Administrator';
+		String profileId = [SELECT Id FROM Profile WHERE Name=:profileName LIMIT 1].Id;
+		return [SELECT Id, Name, FirstName, LastName FROM User WHERE ProfileId=:profileId];
 	}
 }

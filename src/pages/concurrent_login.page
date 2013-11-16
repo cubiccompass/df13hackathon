@@ -20,6 +20,7 @@
 	<script type="text/javascript">
 		var frozen 			= false;
 		var case_created	= false;
+		var task_created	= false;
 		
 		if(!LOG){ var LOG = {};}
 		var eventJSON = '{!EventJSON}';
@@ -137,15 +138,18 @@
 		
 		google.maps.event.addDomListener(window, 'load', initializeMap);
 		
-		function freezeUser() {
+		function freezeUser(subject, description) {
         	Visualforce.remoting.Manager.invokeAction(
             	'{!$RemoteAction.LogalyticsEventDetailController.freezeUser}',
             	LOG.event.data.userId, 
+            	subject,
+            	description,
             	function(result, event){
                 	if (event.status) {
                     	$("#loading-img").hide();
+                    	$("#create-case-btn").hide();
 						$("#freeze-user-btn").removeClass("red-background");
-						$("#freeze-user-btn").text("User Frozen");
+						$("#freeze-user-btn").text("User Frozen and Case Created");
 						frozen = true;
                 	} else if (event.type === 'exception') {
                 		alert(event.message);
@@ -168,6 +172,29 @@
 						$("#create-case-btn").removeClass("green-background");
 						$("#create-case-btn").text("Case Created");
 						case_created = true;
+		        	} else if (event.type === 'exception') {
+		        		$("#loading-img").hide();
+		        		alert(event.message);
+		        	} else {
+		        		$("#loading-img").hide();
+		        		alert(event.message);
+		        	}
+		    	}, 
+		    	{escape: true}
+			);
+		};
+		
+		LOG.createTask = function(subject, description) {
+			Visualforce.remoting.Manager.invokeAction(
+		    	'{!$RemoteAction.LogalyticsEventDetailController.createTask}',
+		    	subject, 
+		    	description, 
+		    	function(result, event){
+		        	if (event.status) {
+		            	$("#loading-img").hide();
+						$("#create-task-btn").removeClass("green-background");
+						$("#create-task-btn").text("Task Created");
+						task_created = true;
 		        	} else if (event.type === 'exception') {
 		        		$("#loading-img").hide();
 		        		alert(event.message);
@@ -211,7 +238,9 @@
 				var r = confirm('Freezing User Account. Sure?');
 				if(r == false){ return; }
 				$("#loading-img").show();
-				freezeUser();
+				var subject 	= 'Concurrent Login Event: ' + LOG.event.data.userName;
+				var description = LOG.event.data.userName + " has logged in from two different locations " + LOG.event.data.distance + " miles apart with an elapsed time of " + LOG.event.data.elapsedMinutes + " minutes.";
+				freezeUser(subject, description);
 				return false;
 			});
 			
@@ -219,8 +248,16 @@
 				if(case_created){ return;}
 				$("#loading-img").show();
 				var subject 	= 'Concurrent Login Event: ' + LOG.event.data.userName;
-				var description = LOG.event.data.userName + " logged in from 2 geographically separate locations within a short time span.";
+				var description = LOG.event.data.userName + " has logged in from two different locations " + LOG.event.data.distance + " miles apart with an elapsed time of " + LOG.event.data.elapsedMinutes + " minutes.";
 				LOG.createCase(subject, description);
+			});
+			
+			$("#create-task-btn").live('click',function(event){
+				if(task_created){ return;}
+				$("#loading-img").show();
+				var subject 	= 'Concurrent Login Event: ' + LOG.event.data.userName;
+				var description = LOG.event.data.userName + " has logged in from two different locations " + LOG.event.data.distance + " miles apart with an elapsed time of " + LOG.event.data.elapsedMinutes + " minutes.";
+				LOG.createTask(subject, description);
 			});
 		});
 	</script>
@@ -230,42 +267,12 @@
 		<span id="details-header-text"></span>
 	</div>
 	<p>
-		<strong><span id="username"></span></strong> has logged in from 2 geographically different locations within a short time frame.
-	</p>	
-	<p>
-	Distance between locations: <span id="distance"></span> Miles
-	</p>
-	<p>
-	Time between logins: <span id="elapsedMinutes"></span> Minutes
+		<strong><span id="username"></span></strong> has logged in from two different locations <span id="distance" style="font-weight:bold;"></span> miles apart with an elapsed time of <span id="elapsedMinutes" style="font-weight:bold;"></span> minutes.
 	</p>
 	<div id="map-canvas"></div><br/>
 	<img id="loading-img" src="https://logalytics.herokuapp.com/static/img/ajax-loader.gif" style="margin-left:155px; display: none;" />
 	<div id="freeze-user-btn" class="mobile-btn red-background">Freeze User</div>
 	<div id="create-case-btn" class="mobile-btn green-background">Create Case</div>
-	<p>
-	<strong>Recent Login</strong>
-	<table>
-		<tr><td>Time:</td><td id="currentTime"></td></tr>
-		<tr><td>City</td><td id="currentCity"></td></tr>
-		<tr><td>Country:</td><td id="currentCountry"></td></tr>
-		<tr><td>Region:</td><td id="currentRegion"></td></tr>
-		<tr><td>Time Zone:</td><td id="currentTimeZone"></td></tr>
-		<tr><td>Domain:</td><td id="currentDomain"></td></tr>
-		<tr><td>ISP:</td><td id="currentISP"></td></tr>
-	</table>
-	</p>
-	
-	<p>
-	<strong>Previous Login</strong>
-	<table>
-		<tr><td>Time:</td><td id="prevTime"></td></tr>
-		<tr><td>City</td><td id="prevCity"></td></tr>
-		<tr><td>Country:</td><td id="prevCountry"></td></tr>
-		<tr><td>Region:</td><td id="prevRegion"></td></tr>
-		<tr><td>Time Zone:</td><td id="prevTimeZone"></td></tr>
-		<tr><td>Domain:</td><td id="prevDomain"></td></tr>
-		<tr><td>ISP:</td><td id="prevISP"></td></tr>
-	</table>
-	</p>
+	<div id="create-task-btn" class="mobile-btn green-background">Create Task</div>
 	<div id="stretch"></div>
 </apex:page>

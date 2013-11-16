@@ -21,14 +21,6 @@ h1{
 	
 }
 
-#back-btn{
-	margin-top:10px;
-	text-decoration: none; 
-	text-weight: normal; 
-	float: left;
-	color:#00f
-}
-
 #container{
 	margin-bottom: 55px;
 }
@@ -43,9 +35,10 @@ h1{
 	float: left;
 }
 #details-header{
+	padding-top: 17px;
 	text-align:center;
-	width:320px;
-	height: 37px;
+	width:100%;
+	height: 38px;
 	font-weight: bold;
 	clear: both;
 	background-color:#f3f3f3;
@@ -55,14 +48,25 @@ h1{
   	background-position: bottom;
 }
 
+#back-btn{
+	text-decoration: none; 
+	text-weight: normal; 
+	float: left;
+	color:#00f
+}
+
 #details-header-text{
-	margin-top: 11px;
+	padding-top: 11px;
 }
 
 #details-content{
 	margin-top: 7px;
 }
 .details-stretch{
+	height: 50px;
+}
+
+#stretch{
 	height: 50px;
 }
 
@@ -259,11 +263,11 @@ a.seg-button {
 	color: #fff;
 }
 
-.mobile-btn { 
+.mobile-btn {
 	height: 32px;	
 	text-align: center; 			
 	padding-top: 15px;
-	margin-top: 3px;
+	margin-top: 6px;
 	margin-bottom: 3px;
 	margin-left: 5px;
 	margin-right: 5px;

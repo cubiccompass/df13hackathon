@@ -92,6 +92,7 @@
 		<table id="profile-table" style="width:100%"></table>
 	</p>
 	<img id="loading-img" src="https://logalytics.herokuapp.com/static/img/ajax-loader.gif" style="margin-left:155px; display: none;" />
+	<div id="freeze-user-btn" class="mobile-btn red-background">Undo Permission Change</div>
 	<div id="create-case-btn" class="mobile-btn green-background">Create Case</div>
 	<div id="stretch"></div>
 </apex:page>

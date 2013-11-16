@@ -73,6 +73,17 @@
 			$("#timestamp").text( dt.toString() );
 		}
 		
+		function getInfoWindowContent(){
+			var dt = new XDate( parseInt(LOG.event.timestamp) );
+			return '<strong>Login Details</strong>' +
+				'<table>' +
+					'<tr><td>Time:</td><td>' + dt.toString() + '</td></tr>' +
+					'<tr><td>City</td><td>' + LOG.event.data.CityName + '</td></tr>' +
+					'<tr><td>Country:</td><td>' + LOG.event.data.CountryName + '</td></tr>' +
+					'<tr><td>Region:</td><td>' + LOG.event.data.RegionName + '</td></tr>' +					
+				'</table>';
+		}
+		
 		function initializeMap() {
 			var lat 	= parseFloat(LOG.event.lat);
 			var lng 	= parseFloat(LOG.event.long);
@@ -89,18 +100,29 @@
 				title: 'Open Proxy Login'
 			});
 			map.setOptions({draggable: false, zoomControl: true, scrollwheel: false, disableDoubleClickZoom: true});
+			
+			var infowindow = new google.maps.InfoWindow({
+      			content: getInfoWindowContent(),
+      			maxWidth: 200
+  			});
+			google.maps.event.addListener(marker, 'click', function() {
+    			infowindow.open(map,marker);
+  			});
 		}
 		google.maps.event.addDomListener(window, 'load', initializeMap);
 		
-		function freezeUser() {
+		function freezeUser(subject, description) {
         	Visualforce.remoting.Manager.invokeAction(
             	'{!$RemoteAction.LogalyticsEventDetailController.freezeUser}',
             	LOG.event.record.UserId, 
+            	subject,
+            	description,
             	function(result, event){
                 	if (event.status) {
                     	$("#loading-img").hide();
+                    	$("#create-case-btn").hide();
 						$("#freeze-user-btn").removeClass("red-background");
-						$("#freeze-user-btn").text("User Frozen");
+						$("#freeze-user-btn").text("User Frozen and Case Created");
 						frozen = true;
                 	} else if (event.type === 'exception') {
                 		$("#loading-img").hide();
@@ -149,7 +171,10 @@
 				var r = confirm('Freezing User Account. Sure?');
 				if(r == false){ return; }
 				$("#loading-img").show();
-				freezeUser();
+				var subject = 'Open Proxy Login Event: ' + LOG.event.UserName;
+				var description = LOG.event.UserName + " logged into Salesforce from IP " + LOG.event.data.Address + ". Location: " + 
+						LOG.event.data.CityName + ", " + LOG.event.data.RegionName + " " + LOG.event.data.CountryName + ". This IP address has a very high probability of being a known open proxy (aka zombie) computer.";
+				freezeUser(subject, description);
 				return false;
 			});
 			
@@ -191,9 +216,9 @@
 		These open proxies change frequently, as home users cycle through IP addresses and as anti-virus software clean up infections. This category also includes legitimate anonymizing services (listed as anonymous proxies) that cycle their IP addresses frequently in an effort to help their clients get around restricted sites or services that block known anonymous proxies.
 		</p>
 	</div>
+	<div id="map-canvas"></div><br/>
 	<img id="loading-img" src="https://logalytics.herokuapp.com/static/img/ajax-loader.gif" style="margin-left:155px; display: none;" />
 	<div id="freeze-user-btn" class="mobile-btn red-background">Freeze User</div>
 	<div id="create-case-btn" class="mobile-btn green-background">Create Case</div>
-	<div id="map-canvas"></div><br/>
 	<div id="stretch"></div>
 </apex:page>
