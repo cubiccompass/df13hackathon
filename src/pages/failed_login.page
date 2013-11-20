@@ -1,0 +1,210 @@
+<apex:page sidebar="false" showHeader="false" controller="LogalyticsEventDetailController">
+<head>
+	<title>Logalytics</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
+	<meta name="apple-mobile-web-app-capable" content="yes" />
+	<meta name="format-detection" content="telephone=no" />	
+	<link href="{!$Resource.logalytics_styles}" type="text/css" rel="Stylesheet" />
+	<style type="text/css">
+      html { height: 100% }
+      body { height: 100%; margin: 0; padding: 0 }
+      #map-canvas { height: 320px; }
+      	.green-background {
+			background-color: #4CD964;
+			color: #fff;
+		}
+		
+		.red-background {
+			background-color: #FF2D55;
+			color: #fff;
+		}
+		
+		.mobile-btn { 
+			height: 32px;	
+			text-align: center; 			
+			padding-top: 15px;
+			margin-top: 3px;
+			margin-bottom: 3px;
+			margin-left: 5px;
+			margin-right: 5px;
+			-moz-border-radius: 8px;
+			-webkit-border-radius: 8px;
+			border-radius: 8px; /* future proofing */
+			-khtml-border-radius: 8px; /* for old Konqueror browsers */
+		}
+    </style>
+	<script src="https://logalytics.herokuapp.com/static/js/zepto.min.js"></script>
+	<script src="https://logalytics.herokuapp.com/static/js/xdate.js"></script>
+	<script src="https://logalytics.herokuapp.com/static/js/fastclick.min.js"></script>
+	<apex:includeScript value="{!$Resource.logalytics_library}" />
+	<script type="text/javascript">
+		Zepto(function($){
+			LOG.registerEventHandlers();
+		});
+	</script>
+	<script type="text/javascript"
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDSMGzW9itG5qGj2EW2HbKjASRtfk9xmHg&sensor=false">
+    </script>
+	<script type="text/javascript">
+		var frozen 			= false;
+		var case_created	= false;
+		if(!LOG){ var LOG = {};}
+		var eventJSON = '{!EventJSON}';
+		if(eventJSON != ''){
+			LOG.event = JSON.parse(eventJSON);
+			console.log(LOG.event);
+		}
+		
+		// Attach fastclick to all clickable DOM elements
+		window.addEventListener('load', function () {
+			FastClick.attach(document.body);
+		}, false);
+		
+		function bindProperties(){
+			$("#UserName").text(LOG.event.UserName);
+			$("#loginSourceIp").text(LOG.event.data.Address);
+			$("#CityName").text(LOG.event.data.CityName);
+			$("#RegionName").text(LOG.event.data.RegionName);
+			$("#CountryName").text(LOG.event.data.CountryName);
+			$("#loginPlatform").text(LOG.event.record.Platform);
+			$("#loginApplication").text(LOG.event.record.Application);
+			$("#UserType").text(LOG.event.data.UserType);
+			var dt = new XDate( parseInt(LOG.event.timestamp) );
+			$("#timestamp").text( dt.toString() );
+		}
+		
+		function getInfoWindowContent(){
+			var dt = new XDate( parseInt(LOG.event.timestamp) );
+			return '<strong>Login Details</strong>' +
+				'<table>' +
+					'<tr><td>Time:</td><td>' + dt.toString() + '</td></tr>' +
+					'<tr><td>City</td><td>' + LOG.event.data.CityName + '</td></tr>' +
+					'<tr><td>Country:</td><td>' + LOG.event.data.CountryName + '</td></tr>' +
+					'<tr><td>Region:</td><td>' + LOG.event.data.RegionName + '</td></tr>' +					
+				'</table>';
+		}
+		
+		function initializeMap() {
+			var lat 	= parseFloat(LOG.event.lat);
+			var lng 	= parseFloat(LOG.event.long);
+			var mapOptions = {
+				center: new google.maps.LatLng(lat, lng),
+				zoom: 10,
+				mapTypeId: google.maps.MapTypeId.ROADMAP
+			};
+			var map = new google.maps.Map(document.getElementById("map-canvas"), mapOptions);
+			
+			var marker = new google.maps.Marker({
+				position: new google.maps.LatLng(lat, lng),
+				map: map,
+				title: 'Open Proxy Login'
+			});
+			map.setOptions({draggable: false, zoomControl: true, scrollwheel: false, disableDoubleClickZoom: true});
+			
+			var infowindow = new google.maps.InfoWindow({
+      			content: getInfoWindowContent(),
+      			maxWidth: 200
+  			});
+			google.maps.event.addListener(marker, 'click', function() {
+    			infowindow.open(map,marker);
+  			});
+		}
+		google.maps.event.addDomListener(window, 'load', initializeMap);
+		
+		function freezeUser(subject, description) {
+        	Visualforce.remoting.Manager.invokeAction(
+            	'{!$RemoteAction.LogalyticsEventDetailController.freezeUser}',
+            	LOG.event.record.UserId, 
+            	subject,
+            	description,
+            	function(result, event){
+                	if (event.status) {
+                    	$("#loading-img").hide();
+                    	$("#create-case-btn").hide();
+						$("#freeze-user-btn").removeClass("red-background");
+						$("#freeze-user-btn").text("User Frozen and Case Created");
+						frozen = true;
+                	} else if (event.type === 'exception') {
+                		$("#loading-img").hide();
+                		alert(event.message);
+                	} else {
+                		$("#loading-img").hide();
+                		alert(event.message);
+                	}
+            	}, 
+            	{escape: true}
+        	);
+    	}
+    	
+		LOG.createCase = function(subject, description) {
+			Visualforce.remoting.Manager.invokeAction(
+		    	'{!$RemoteAction.LogalyticsEventDetailController.createCase}',
+		    	subject, 
+		    	description, 
+		    	function(result, event){
+		        	if (event.status) {
+		            	$("#loading-img").hide();
+						$("#create-case-btn").removeClass("green-background");
+						$("#create-case-btn").text("Case Created");
+						case_created = true;
+		        	} else if (event.type === 'exception') {
+		        		$("#loading-img").hide();
+		        		alert(event.message);
+		        	} else {
+		        		$("#loading-img").hide();
+		        		alert(event.message);
+		        	}
+		    	}, 
+		    	{escape: true}
+			);
+		};		
+		Zepto(function($){
+			bindProperties();
+			
+			$("#show-explanation").live('click',function(event){
+				$("#explanation").toggle();
+				return false;
+			});
+			
+			$("#freeze-user-btn").live('click',function(event){
+				if(frozen){ return;}
+				var r = confirm('Freezing User Account. Sure?');
+				if(r == false){ return; }
+				$("#loading-img").show();
+				var subject = 'Failed Login Attempt: ' + LOG.event.UserName;
+				var description = LOG.event.UserName + " failed to login with invalid password. Investigate.";
+				freezeUser(subject, description);
+				return false;
+			});
+			
+			$("#create-case-btn").live('click',function(event){
+				if(case_created){ return;}
+				$("#loading-img").show();
+				var subject = 'Failed Login Attempt: ' + LOG.event.UserName;
+				var description = LOG.event.UserName + " failed to login with invalid password. Investigate.";
+				LOG.createCase(subject, description);
+			});
+		});
+	</script>
+</head>
+	<div id="details-header">
+		<a id="back-btn" href="#">Back</a>
+		<span id="details-header-text"></span>
+	</div>
+	<table style="width:100%">
+		<tr><td><strong>User:</strong></td><td><span id="UserName"></span></td></tr>
+		<tr><td><strong>Date/Time</strong></td><td><span id="timestamp"></span></td></tr>
+		<tr><td><strong>IP:</strong></td><td><span id="loginSourceIp"></span></td></tr>
+		<tr><td><strong>Country</strong></td><td><span id="CountryName"></span></td></tr>
+		<tr><td><strong>Region</strong></td><td><span id="RegionName"></span></td></tr>
+		<tr><td><strong>City</strong></td><td><span id="CityName"></span></td></tr>
+		<tr><td><strong>Platform</strong></td><td><span id="loginPlatform"></span></td></tr>
+		<tr><td><strong>Application</strong></td><td><span id="loginApplication"></span></td></tr>
+		<tr><td><strong>Login Type</strong></td><td><span id="UserType"></span></td></tr>
+	</table>
+	<div id="map-canvas"></div><br/>
+	<img id="loading-img" src="https://logalytics.herokuapp.com/static/img/ajax-loader.gif" style="margin-left:155px; display: none;" />
+	<div id="freeze-user-btn" class="mobile-btn red-background">Freeze User</div>
+	<div id="create-case-btn" class="mobile-btn green-background">Create Case</div>
+	<div id="stretch"></div>
+</apex:page>

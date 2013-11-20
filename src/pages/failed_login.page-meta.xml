@@ -2,10 +2,10 @@
 <ApexPage xmlns="http://soap.sforce.com/2006/04/metadata">
     <apiVersion>29.0</apiVersion>
     <availableInTouch>true</availableInTouch>
-    <label>metadata</label>
+    <label>failed_login</label>
     <packageVersions>
         <majorNumber>1</majorNumber>
-        <minorNumber>5</minorNumber>
+        <minorNumber>6</minorNumber>
         <namespace>sf_chttr_apps</namespace>
     </packageVersions>
 </ApexPage>

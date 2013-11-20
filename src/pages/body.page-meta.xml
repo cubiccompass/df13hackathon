@@ -4,8 +4,8 @@
     <availableInTouch>true</availableInTouch>
     <label>body</label>
     <packageVersions>
-        <majorNumber>4</majorNumber>
-        <minorNumber>0</minorNumber>
+        <majorNumber>1</majorNumber>
+        <minorNumber>5</minorNumber>
         <namespace>sf_chttr_apps</namespace>
     </packageVersions>
 </ApexPage>
